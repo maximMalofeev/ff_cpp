@@ -16,7 +16,7 @@ endif()
 
 include(${CMAKE_BINARY_DIR}/conan.cmake)
 
-conan_cmake_run(REQUIRES ffmpeg/4.2.1@bincrafters/stable catch2/2.11.0
+conan_cmake_run(REQUIRES ffmpeg/4.2.1@bincrafters/stable catch2/2.11.0 sdl2/2.0.10@bincrafters/stable
                 BASIC_SETUP CMAKE_TARGETS
                 BUILD missing)
 
@@ -39,5 +39,5 @@ elseif(UNIX)
 endif()
 
 add_subdirectory(test)
-#add_subdirectory(examples)
+add_subdirectory(examples)
 

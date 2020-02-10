@@ -105,7 +105,7 @@ TEST_CASE("Demuxer decoders", "[demuxer]") {
     REQUIRE(decoder.height() == 1080);
     REQUIRE(decoder.format() == static_cast<AVPixelFormat>(AV_PIX_FMT_YUV420P));
   }
-  SECTION("Create decoder twice for the same index"){
+  SECTION("Create decoder twice for the same index") {
     ff_cpp::Demuxer demuxer(url);
     demuxer.prepare();
     REQUIRE_NOTHROW(demuxer.createDecoder(demuxer.bestVideoStream().index()));
@@ -122,18 +122,20 @@ TEST_CASE("Start/Stop demuxer", "[demuxer]") {
     ff_cpp::Demuxer demuxer(url);
     demuxer.prepare();
     demuxer.createDecoder(demuxer.bestVideoStream().index());
-    demuxer.start([&demuxer](const AVFrame* frm) {
-                    REQUIRE(frm->width == 1920);
-                    REQUIRE(frm->height == 1080);
-                    REQUIRE(frm->format == static_cast<AVPixelFormat>(AV_PIX_FMT_YUV420P));
-                    demuxer.stop();
-                  },
-                  [&demuxer](const AVPacket* pkt) {
-                    if(pkt->stream_index == demuxer.bestVideoStream().index()){
-                      return true;
-                    }
-                    return false;
-                  });
+    demuxer.start(
+        [&demuxer](const AVFrame* frm) {
+          REQUIRE(frm->width == 1920);
+          REQUIRE(frm->height == 1080);
+          REQUIRE(frm->format ==
+                  static_cast<AVPixelFormat>(AV_PIX_FMT_YUV420P));
+          demuxer.stop();
+        },
+        [&demuxer](const AVPacket* pkt) {
+          if (pkt->stream_index == demuxer.bestVideoStream().index()) {
+            return true;
+          }
+          return false;
+        });
     SUCCEED();
   }
 }
