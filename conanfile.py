@@ -10,7 +10,7 @@ class FFCPPConan(ConanFile):
     description = "ff_cpp"
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake"
-    requires = "ffmpeg/4.2.1@bincrafters/stable"
+    requires = "ffmpeg/4.2.1@bincrafters/stable", "sdl2/2.0.10@bincrafters/stable"
     build_requires = "catch2/2.11.0"
 
 #    def source(self):
