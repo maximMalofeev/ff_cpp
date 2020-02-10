@@ -16,8 +16,13 @@ endif()
 
 include(${CMAKE_BINARY_DIR}/conan.cmake)
 
-conan_cmake_run(REQUIRES ffmpeg/4.2.1@bincrafters/stable catch2/2.11.0
-                BASIC_SETUP CMAKE_TARGETS
+conan_check(VERSION 1.8.0 REQUIRED)
+conan_add_remote(NAME bincrafters URL "https://api.bintray.com/conan/bincrafters/public-conan")
+conan_add_remote(NAME conan-center URL "https://conan.bintray.com")
+
+conan_cmake_run(CONANFILE conanfile.py
+                BASIC_SETUP CMAKE_TARGETS NO_OUTPUT_DIRS
+                INSTALL_FOLDER ${CMAKE_BINARY_DIR}
                 BUILD missing)
 
 set(sources "include/ff_cpp/ff_include.h" "include/ff_cpp/ff_exception.h"
@@ -25,7 +30,6 @@ set(sources "include/ff_cpp/ff_include.h" "include/ff_cpp/ff_exception.h"
   "include/ff_cpp/ff_demuxer.h" "src/ff_demuxer.cpp"
   "include/ff_cpp/ff_stream.h" "src/ff_stream.cpp"
   "include/ff_cpp/ff_decoder.h" "src/ff_decoder.cpp")
-
 
 add_library(${PROJECT_NAME} SHARED ${sources})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
