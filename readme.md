@@ -1,14 +1,13 @@
 # ff_cpp
 
-Simple wrapper around ffmpeg.
-It made to simplyfy process of demuxing and decoding inputs.
-This library gives simple access to received AVPacket and decoded AVFrame
+Simple wrapper around ffmpeg.  
+I made this library to simplify the process of demuxing and decoding inputs. This library gives simple access to received AVPacket and decoded AVFrame.
 
 # Prerequires
 
-CMake 3.10
-Conan pacage manager
-C++17
+CMake 3.10  
+Conan package manager  
+C++17  
 
 # Example of usage
 
