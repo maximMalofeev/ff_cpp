@@ -8,10 +8,16 @@ int main(int argc, char** argv) {
     std::cerr << "Usage: rtsp_player <rtsp_url>" << std::endl;
     return 1;
   }
-
-  ff_cpp::Demuxer demuxer(argv[1], {{"rtsp_transport", "tcp"}});
+  
+  ff_cpp::Demuxer demuxer(argv[1]);
   try {
-    demuxer.prepare(5);
+    demuxer.prepare({{"fflags", "autobsf+discardcorrupt+genpts+ignidx+igndts"},
+                     {"rtsp_transport", "tcp"},
+                     {"allowed_media_types", "video"}},
+                    5);
+
+    std::cout << demuxer << std::endl;
+
     auto& vStream = demuxer.bestVideoStream();
 
     if (vStream.format() != AV_PIX_FMT_YUV420P) {

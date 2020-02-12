@@ -8,6 +8,11 @@ class FFCppException : public std::runtime_error {
   FFCppException(const std::string& msg) : std::runtime_error(msg) {}
 };
 
+class TimeoutElapsed : public FFCppException {
+ public:
+  TimeoutElapsed(const std::string& msg) : FFCppException(msg) {}
+};
+
 class BadInput : public FFCppException {
  public:
   BadInput(const std::string& msg, const std::string& url)

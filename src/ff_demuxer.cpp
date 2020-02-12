@@ -20,14 +20,22 @@ using UniqFrame = std::unique_ptr<AVFrame, decltype(avFrameDeleter)*>;
 
 struct Demuxer::Impl {
   std::string input;
-  ParametersContainer params;
   UniqFormatContext demuxerContext{nullptr, avFormatDeleater};
   std::vector<Stream> streams;
   std::map<int, Decoder> decoders;
 
   bool doWork{};
+
+  volatile bool timeoutElapsed{};
   std::chrono::seconds timeout;
   std::chrono::steady_clock::time_point timePoint{};
+
+  /**
+   * @brief set start time point of new ffmpeg request
+   */
+  void updateRequestTime(){
+    timePoint = std::chrono::steady_clock::now();
+  }
 
   static int interrupt_callback(void* opaque) {
     auto demuxer = static_cast<Demuxer*>(opaque);
@@ -36,6 +44,7 @@ struct Demuxer::Impl {
       auto timeElapsed = std::chrono::duration_cast<std::chrono::seconds>(
           now - demuxer->impl_->timePoint);
       if (demuxer->impl_->timeout <= timeElapsed) {
+        demuxer->impl_->timeoutElapsed = true;
         return 1;
       } else {
         return 0;
@@ -45,30 +54,43 @@ struct Demuxer::Impl {
   }
 };
 
-Demuxer::Demuxer(const std::string& inputSource, ParametersContainer params) {
+Demuxer::Demuxer(const std::string& inputSource) {
   impl_ = std::make_unique<Impl>();
   impl_->input = inputSource;
-  impl_->params = params;
 }
 
 Demuxer::~Demuxer() {}
 
-void Demuxer::prepare(unsigned int timeout) {
+void Demuxer::prepare(ParametersContainer params, unsigned int timeout) {
   AVFormatContext* fmtCntxt = avformat_alloc_context();
   fmtCntxt->interrupt_callback.callback = Impl::interrupt_callback;
   fmtCntxt->interrupt_callback.opaque = this;
 
   AVDictionary* optionsDict{};
-  for (const auto& param : impl_->params) {
+  for (const auto& param : params) {
     av_dict_set(&optionsDict, param.first.c_str(), param.second.c_str(), 0);
   }
 
   impl_->timeout = std::chrono::seconds{timeout};
-  impl_->timePoint = std::chrono::steady_clock::now();
+  impl_->updateRequestTime();
+
   if (auto err = avformat_open_input(&fmtCntxt, impl_->input.c_str(), nullptr,
                                      &optionsDict);
       err == EXIT_SUCCESS) {
     impl_->demuxerContext.reset(fmtCntxt);
+
+    if (err = avformat_find_stream_info(impl_->demuxerContext.get(), nullptr);
+        err < EXIT_SUCCESS) {
+      if(impl_->timeoutElapsed){
+        throw TimeoutElapsed("Timeout elapsed while find stream info");
+      }
+      throw NoStream(av_err2str(err));
+    }
+
+    for (unsigned int i = 0; i < impl_->demuxerContext->nb_streams; i++) {
+      impl_->demuxerContext->streams[i]->discard = AVDISCARD_DEFAULT;
+      impl_->streams.emplace_back(Stream{impl_->demuxerContext->streams[i]});
+    }
 
     if (optionsDict != nullptr) {
       AVDictionaryEntry* opt = nullptr;
@@ -78,16 +100,10 @@ void Demuxer::prepare(unsigned int timeout) {
       }
       throw OptionsNotAccepted("Not all options accepted", params);
     }
-
-    if (err = avformat_find_stream_info(impl_->demuxerContext.get(), nullptr);
-        err < EXIT_SUCCESS) {
-      throw NoStream(av_err2str(err));
-    }
-
-    for (unsigned int i = 0; i < impl_->demuxerContext->nb_streams; i++) {
-      impl_->streams.emplace_back(Stream{impl_->demuxerContext->streams[i]});
-    }
   } else {
+    if (impl_->timeoutElapsed) {
+      throw TimeoutElapsed("Timeout elapsed while open input");
+    }
     throw BadInput(av_err2str(err), impl_->input);
   }
 }
@@ -155,23 +171,30 @@ void Demuxer::start(frame_callback fc, packet_callback pc) {
   UniqFrame frame{av_frame_alloc(), avFrameDeleter};
   int err = EXIT_SUCCESS;
   impl_->doWork = true;
+
+  impl_->timeout = std::chrono::seconds{5};
+
   while (impl_->doWork) {
+    impl_->updateRequestTime();
     if ((err = av_read_frame(impl_->demuxerContext.get(), &packet)) <
         EXIT_SUCCESS) {
-      throw ProcessingError(av_err2str(err));
+      if(impl_->timeoutElapsed){
+        throw TimeoutElapsed("Timeout elapsed while read frame");
+      }
+      throw ProcessingError(std::string{"av_read_frame error: "} +
+                            av_err2str(err));
     }
 
     if (pc(&packet)) {
       auto& decoder = impl_->decoders.at(packet.stream_index);
+      impl_->updateRequestTime();
       if (err = decoder.sendPacket(&packet); err >= EXIT_SUCCESS) {
         err = EXIT_SUCCESS;
         while (err >= EXIT_SUCCESS) {
           err = decoder.receiveFrame(frame.get());
           if (err == AVERROR(EAGAIN) || err == AVERROR_EOF) {
             break;
-          } else if (err == AVERROR(EINVAL)) {
-            throw ProcessingError(av_err2str(err));
-          } else if (err < 0) {
+          } else if (err == AVERROR(EINVAL) || err < 0) {
             throw ProcessingError(av_err2str(err));
           }
 
@@ -221,7 +244,8 @@ std::ostream& operator<<(std::ostream& ost, const Demuxer& dmxr) {
           ost << "\t\t\t"
               << "Codec: " << avcodec_get_name(stream->codecpar->codec_id)
               << "\n";
-          if (stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+          if (stream->codecpar &&
+              stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
             ost << "\t\t\t"
                 << "Pixel format: "
                 << av_get_pix_fmt_name(

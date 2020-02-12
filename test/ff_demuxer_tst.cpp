@@ -17,8 +17,8 @@ TEST_CASE("Prepare demuxer", "[demuxer]") {
     REQUIRE_THROWS_AS(demuxer.prepare(), ff_cpp::BadInput);
   }
   SECTION("Invalid parameters") {
-    ff_cpp::Demuxer demuxer(url, {{"invalid", "parameter"}});
-    REQUIRE_THROWS_AS(demuxer.prepare(), ff_cpp::OptionsNotAccepted);
+    ff_cpp::Demuxer demuxer(url);
+    REQUIRE_THROWS_AS(demuxer.prepare({{"invalid", "parameter"}}), ff_cpp::OptionsNotAccepted);
   }
   SECTION("Empty file") {
     ff_cpp::Demuxer demuxer(emptyFileUrl);
@@ -31,7 +31,7 @@ TEST_CASE("Prepare demuxer", "[demuxer]") {
   }
   SECTION("Timeout") {
     ff_cpp::Demuxer demuxer("rtsp://localhost:5555/Some/Stream/3");
-    REQUIRE_THROWS(demuxer.prepare(5));
+    REQUIRE_THROWS_AS(demuxer.prepare({}, 5), ff_cpp::TimeoutElapsed);
   }
 }
 

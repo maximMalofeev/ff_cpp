@@ -25,8 +25,7 @@ using frame_callback = std::function<void(const AVFrame*)>;
 
 class Demuxer {
  public:
-  FF_CPP_API Demuxer(const std::string& inputSource,
-                     ParametersContainer params = {});
+  FF_CPP_API Demuxer(const std::string& inputSource);
   FF_CPP_API ~Demuxer();
 
   /**
@@ -35,8 +34,10 @@ class Demuxer {
    * are accepted
    * @exception BadInput - open input failed
    * @exception NoStream - if find stream info failed
+   * @exception TimeoutElapsed - if timeout elapsed while find stream info
    */
-  FF_CPP_API void prepare(unsigned int timeout = 15);
+  FF_CPP_API void prepare(ParametersContainer params = {},
+                          unsigned int timeout = 15);
 
   /**
    * @brief Return sources metadata
@@ -94,6 +95,7 @@ class Demuxer {
    * call
    * @exception FFCppException if demuxer not prepared
    * @exception ProcessingError if error occured while demuxind\decoding routine
+   * @exception TimeoutElapsed if timeout elapsed while read frames
    */
   FF_CPP_API void start(frame_callback fc = [](const AVFrame*) {},
                         packet_callback pc =
