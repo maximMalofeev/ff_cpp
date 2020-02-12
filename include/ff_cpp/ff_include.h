@@ -12,10 +12,14 @@ extern "C" {
 #include <libavutil/imgutils.h>
 }
 
+#if defined(WIN32) && defined(FF_CPP_SHARED)
 #if defined(FF_CPP)
 #define FF_CPP_API __declspec(dllexport)
 #else
 #define FF_CPP_API __declspec(dllimport)
+#endif
+#else
+#define FF_CPP_API
 #endif
 
 namespace ff_cpp {
