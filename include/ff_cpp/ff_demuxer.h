@@ -29,6 +29,11 @@ class Demuxer {
   FF_CPP_API ~Demuxer();
 
   /**
+   * @brief Getter for input source
+   */
+  FF_CPP_API const std::string& inputSource() const;
+
+  /**
    * @brief Prepare input to use
    * @exception OptionsNotAccepted - not all parameters passed in constructor
    * are accepted

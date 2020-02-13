@@ -36,6 +36,8 @@ int Stream::averageFPS() const {
   return impl_->stream->avg_frame_rate.num / impl_->stream->avg_frame_rate.den;
 }
 
+AVRational Stream::timeBase() const { return impl_->stream->time_base; }
+
 std::ostream& operator<<(std::ostream& ost, const Stream& s) {
   ost << "Stream:\n";
   if (s.impl_->stream) {
@@ -49,7 +51,10 @@ std::ostream& operator<<(std::ostream& ost, const Stream& s) {
         << s.impl_->stream->codecpar->height << "\n";
     ost << "\tAverage FPS: "
         << s.impl_->stream->avg_frame_rate.num /
-               s.impl_->stream->avg_frame_rate.den;
+               s.impl_->stream->avg_frame_rate.den
+        << "\n";
+    ost << "\tTime base: " << s.impl_->stream->time_base.num << "/"
+        << s.impl_->stream->time_base.den;
   } else {
     ost << "\tEmpty stream";
   }

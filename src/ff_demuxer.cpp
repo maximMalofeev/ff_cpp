@@ -61,6 +61,10 @@ Demuxer::Demuxer(const std::string& inputSource) {
 
 Demuxer::~Demuxer() {}
 
+const std::string& Demuxer::inputSource() const{
+  return impl_->input;
+}
+
 void Demuxer::prepare(ParametersContainer params, unsigned int timeout) {
   AVFormatContext* fmtCntxt = avformat_alloc_context();
   fmtCntxt->interrupt_callback.callback = Impl::interrupt_callback;
