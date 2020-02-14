@@ -4,8 +4,8 @@ from conans import ConanFile, CMake, tools
 class FFCPPConan(ConanFile):
     name = "ff_cpp"
     version = "0.1"
-    license = "proprietary"
-    author = "Maxim Malofeev m.malofeev@recognize.ru"
+    license = ""
+    author = "Maxim Malofeev maximmalofeev@bk.ru"
     url = "https://github.com/maximMalofeev/ff_cpp.git"
     description = "ff_cpp"
     settings = "os", "compiler", "build_type", "arch"
