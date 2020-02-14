@@ -33,9 +33,7 @@ struct Demuxer::Impl {
   /**
    * @brief set start time point of new ffmpeg request
    */
-  void updateRequestTime(){
-    timePoint = std::chrono::steady_clock::now();
-  }
+  void updateRequestTime() { timePoint = std::chrono::steady_clock::now(); }
 
   static int interrupt_callback(void* opaque) {
     auto demuxer = static_cast<Demuxer*>(opaque);
@@ -61,9 +59,7 @@ Demuxer::Demuxer(const std::string& inputSource) {
 
 Demuxer::~Demuxer() {}
 
-const std::string& Demuxer::inputSource() const{
-  return impl_->input;
-}
+const std::string& Demuxer::inputSource() const { return impl_->input; }
 
 void Demuxer::prepare(ParametersContainer params, unsigned int timeout) {
   AVFormatContext* fmtCntxt = avformat_alloc_context();
@@ -85,7 +81,7 @@ void Demuxer::prepare(ParametersContainer params, unsigned int timeout) {
 
     if (err = avformat_find_stream_info(impl_->demuxerContext.get(), nullptr);
         err < EXIT_SUCCESS) {
-      if(impl_->timeoutElapsed){
+      if (impl_->timeoutElapsed) {
         throw TimeoutElapsed("Timeout elapsed while find stream info");
       }
       throw NoStream(av_err2str(err));
@@ -182,14 +178,15 @@ void Demuxer::start(frame_callback fc, packet_callback pc) {
     impl_->updateRequestTime();
     if ((err = av_read_frame(impl_->demuxerContext.get(), &packet)) <
         EXIT_SUCCESS) {
-      if(impl_->timeoutElapsed){
+      if (impl_->timeoutElapsed) {
         throw TimeoutElapsed("Timeout elapsed while read frame");
       }
       throw ProcessingError(std::string{"av_read_frame error: "} +
                             av_err2str(err));
     }
 
-    if (pc(&packet)) {
+    if (pc(&packet) &&
+        (impl_->decoders.find(packet.stream_index) != impl_->decoders.end())) {
       auto& decoder = impl_->decoders.at(packet.stream_index);
       impl_->updateRequestTime();
       if (err = decoder.sendPacket(&packet); err >= EXIT_SUCCESS) {
