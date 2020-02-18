@@ -2,10 +2,11 @@
                            // this in one cpp file
 #include <ff_cpp/ff_demuxer.h>
 #include <ff_cpp/ff_exception.h>
+
 #include <catch2/catch.hpp>
 
-const std::string url = "file:small_bunny_1080p_60fps.mp4";
-const std::string emptyFileUrl = "file:empty_file.mp4";
+const std::string url("file:small_bunny_1080p_60fps.mp4");
+const std::string emptyFileUrl("file:empty_file.mp4");
 
 TEST_CASE("Prepare demuxer", "[demuxer]") {
   SECTION("Empty url and empty parameters") {
@@ -18,7 +19,8 @@ TEST_CASE("Prepare demuxer", "[demuxer]") {
   }
   SECTION("Invalid parameters") {
     ff_cpp::Demuxer demuxer(url);
-    REQUIRE_THROWS_AS(demuxer.prepare({{"invalid", "parameter"}}), ff_cpp::OptionsNotAccepted);
+    REQUIRE_THROWS_AS(demuxer.prepare({{"invalid", "parameter"}}),
+                      ff_cpp::OptionsNotAccepted);
   }
   SECTION("Empty file") {
     ff_cpp::Demuxer demuxer(emptyFileUrl);
@@ -63,13 +65,13 @@ TEST_CASE("Misc", "[demuxer]") {
 TEST_CASE("Demuxer streams", "[demuxer]") {
   SECTION("Not prepared demuxer has not any streams") {
     ff_cpp::Demuxer demuxer("");
-    REQUIRE(demuxer.streams().size() == 0);
+    REQUIRE(demuxer.streams().empty());
     REQUIRE_THROWS_AS(demuxer.bestVideoStream(), ff_cpp::FFCppException);
   }
   SECTION("Prepared demuxer has have at least 1 stream") {
     ff_cpp::Demuxer demuxer(url);
     demuxer.prepare();
-    REQUIRE(demuxer.streams().size() != 0);
+    REQUIRE(!demuxer.streams().empty());
     REQUIRE_NOTHROW(demuxer.bestVideoStream());
     auto& bestVStream = demuxer.bestVideoStream();
     std::cout << bestVStream << std::endl;

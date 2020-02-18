@@ -18,6 +18,14 @@ using UniqFormatContext =
 static void avFrameDeleter(AVFrame* frame) { av_frame_free(&frame); }
 using UniqFrame = std::unique_ptr<AVFrame, decltype(avFrameDeleter)*>;
 
+static void avPacketDeleter(AVPacket* pkt){
+  av_packet_unref(pkt);
+  delete pkt;
+}
+using UniqPacket = std::unique_ptr<AVPacket, decltype(avPacketDeleter)*>;
+
+constexpr int COMMON_TIMEOUT = 5;
+
 struct Demuxer::Impl {
   std::string input;
   UniqFormatContext demuxerContext{nullptr, avFormatDeleater};
@@ -27,7 +35,7 @@ struct Demuxer::Impl {
   bool doWork{};
 
   volatile bool timeoutElapsed{};
-  std::chrono::seconds timeout;
+  std::chrono::seconds timeout{};
   std::chrono::steady_clock::time_point timePoint{};
 
   /**
@@ -61,7 +69,7 @@ Demuxer::~Demuxer() {}
 
 const std::string& Demuxer::inputSource() const { return impl_->input; }
 
-void Demuxer::prepare(ParametersContainer params, unsigned int timeout) {
+void Demuxer::prepare(const ParametersContainer& params, unsigned int timeout) {
   AVFormatContext* fmtCntxt = avformat_alloc_context();
   fmtCntxt->interrupt_callback.callback = Impl::interrupt_callback;
   fmtCntxt->interrupt_callback.opaque = this;
@@ -167,16 +175,15 @@ void Demuxer::start(frame_callback fc, packet_callback pc) {
     throw FFCppException("Demuxer not prepared");
   }
 
-  AVPacket packet;
   UniqFrame frame{av_frame_alloc(), avFrameDeleter};
   int err = EXIT_SUCCESS;
   impl_->doWork = true;
-
-  impl_->timeout = std::chrono::seconds{5};
+  impl_->timeout = std::chrono::seconds{COMMON_TIMEOUT};
 
   while (impl_->doWork) {
+    UniqPacket packet{new AVPacket, avPacketDeleter};
     impl_->updateRequestTime();
-    if ((err = av_read_frame(impl_->demuxerContext.get(), &packet)) <
+    if ((err = av_read_frame(impl_->demuxerContext.get(), packet.get())) <
         EXIT_SUCCESS) {
       if (impl_->timeoutElapsed) {
         throw TimeoutElapsed("Timeout elapsed while read frame");
@@ -185,11 +192,11 @@ void Demuxer::start(frame_callback fc, packet_callback pc) {
                             av_err2str(err));
     }
 
-    if (pc(&packet) &&
-        (impl_->decoders.find(packet.stream_index) != impl_->decoders.end())) {
-      auto& decoder = impl_->decoders.at(packet.stream_index);
+    if (pc(packet.get()) &&
+        (impl_->decoders.find(packet->stream_index) != impl_->decoders.end())) {
+      auto& decoder = impl_->decoders.at(packet->stream_index);
       impl_->updateRequestTime();
-      if (err = decoder.sendPacket(&packet); err >= EXIT_SUCCESS) {
+      if (err = decoder.sendPacket(packet.get()); err >= EXIT_SUCCESS) {
         err = EXIT_SUCCESS;
         while (err >= EXIT_SUCCESS) {
           err = decoder.receiveFrame(frame.get());
@@ -204,8 +211,6 @@ void Demuxer::start(frame_callback fc, packet_callback pc) {
       } else {
         throw ProcessingError(av_err2str(err));
       }
-    } else {
-      av_packet_unref(&packet);
     }
   }
 }
@@ -222,10 +227,10 @@ std::ostream& operator<<(std::ostream& ost, const Demuxer& dmxr) {
   ost << "\tContainer: " << dmxr.impl_->demuxerContext->iformat->name << " ("
       << dmxr.impl_->demuxerContext->iformat->long_name << ")\n";
   auto metadata = dmxr.metadata();
-  if (metadata.size()) {
+  if (!metadata.empty()) {
     ost << "\tMetadata:\n";
     std::for_each(metadata.begin(), metadata.end(),
-                  [&ost](MetadataContainer::value_type item) {
+                  [&ost](const MetadataContainer::value_type& item) {
                     ost << "\t\t" << item.first << "=" << item.second << "\n";
                   });
   }

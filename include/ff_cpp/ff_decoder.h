@@ -18,8 +18,8 @@ class Decoder {
    * @exception OptionsNotAccepted if not all params accepted
    * @return FF_CPP_API
    */
-  FF_CPP_API Decoder(AVCodecID codecId, AVCodecParameters* codecpar = nullptr,
-                     ParametersContainer userParams = {});
+  FF_CPP_API explicit Decoder(AVCodecID codecId, AVCodecParameters* codecpar = nullptr,
+                     const ParametersContainer& userParams = {});
   FF_CPP_API Decoder(Decoder&&);
   FF_CPP_API ~Decoder();
 

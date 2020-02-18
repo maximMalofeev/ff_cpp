@@ -14,8 +14,8 @@ struct Decoder::Impl {
 };
 
 Decoder::Decoder(AVCodecID codecId, AVCodecParameters* codecpar,
-                 ParametersContainer userParams) {
-  impl_.reset(new Impl);
+                 const ParametersContainer& userParams) {
+  impl_= std::make_unique<Impl>();
   auto decoder = avcodec_find_decoder(codecId);
   if (!decoder) {
     throw NoDecoder(std::string{"Decoder for codec "} +

@@ -41,7 +41,7 @@ class Demuxer {
    * @exception NoStream - if find stream info failed
    * @exception TimeoutElapsed - if timeout elapsed while find stream info
    */
-  FF_CPP_API void prepare(ParametersContainer params = {},
+  FF_CPP_API void prepare(const ParametersContainer& params = {},
                           unsigned int timeout = 15);
 
   /**

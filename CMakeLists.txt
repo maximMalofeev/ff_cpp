@@ -5,9 +5,6 @@ project(ff_cpp)
 set(${PROJECT_NAME}_VERSION_MAJOR 1)
 set(${PROJECT_NAME}_VERSION_MINOR 0)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
   message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
   file(DOWNLOAD "https://github.com/conan-io/cmake-conan/raw/v0.15/conan.cmake"
@@ -33,6 +30,7 @@ set(sources "include/ff_cpp/ff_include.h" "include/ff_cpp/ff_exception.h"
 add_library(${PROJECT_NAME} ${sources})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(${PROJECT_NAME} PUBLIC CONAN_PKG::ffmpeg)
+target_compile_options(${PROJECT_NAME} PRIVATE /std:c++17)
 
 if(WIN32)
   add_compile_options(-MP$ENV{NUMBER_OF_PROCESSORS})

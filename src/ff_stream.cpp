@@ -7,7 +7,7 @@ struct Stream::Impl {
 };
 
 Stream::Stream(AVStream* stream) {
-  impl_.reset(new Impl);
+  impl_ = std::make_unique<Impl>();
   impl_->stream = stream;
 }
 

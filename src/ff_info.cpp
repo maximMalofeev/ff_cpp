@@ -1,4 +1,5 @@
 #include <ff_cpp/ff_info.h>
+
 #include <iostream>
 #include <string>
 
@@ -67,4 +68,4 @@ void Info::dumpConfiguration() {
   std::cout << avcodec_configuration() << std::endl;
 }
 
-}
+}  // namespace ff_cpp

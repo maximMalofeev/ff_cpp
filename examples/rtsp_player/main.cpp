@@ -3,24 +3,27 @@
 #include <ff_cpp\ff_exception.h>
 #include <iostream>
 
+constexpr int TIMEOUT = 5;
+
 int main(int argc, char** argv) {
   if (argc != 2) {
     std::cerr << "Usage: rtsp_player <rtsp_url>" << std::endl;
     return 1;
   }
-  
+
   ff_cpp::Demuxer demuxer(argv[1]);
   try {
     demuxer.prepare({{"fflags", "autobsf+discardcorrupt+genpts+ignidx+igndts"},
                      {"rtsp_transport", "tcp"},
                      {"allowed_media_types", "video"}},
-                    5);
+                    TIMEOUT);
 
     std::cout << demuxer << std::endl;
 
     auto& vStream = demuxer.bestVideoStream();
 
-    if (vStream.format() != AV_PIX_FMT_YUV420P) {
+    if (vStream.format() != AV_PIX_FMT_YUV420P &&
+        vStream.format() != AV_PIX_FMT_YUVJ420P) {
       std::cerr << "Unsupported pixel format" << std::endl;
       return 1;
     }
@@ -32,8 +35,10 @@ int main(int argc, char** argv) {
       return 1;
     }
 
+    constexpr int x_pos = 100;
+    constexpr int y_pos = 100;
     SDL_Window* win =
-        SDL_CreateWindow("Hello World!", 100, 100, vStream.width(),
+        SDL_CreateWindow("Hello World!", x_pos, y_pos, vStream.width(),
                          vStream.height(), SDL_WINDOW_OPENGL);
     if (win == nullptr) {
       std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
@@ -61,11 +66,14 @@ int main(int argc, char** argv) {
 
     demuxer.start(
         [&](const AVFrame* frm) {
+          std::cout << "Pts: "
+                    << frm->pts * av_q2d(demuxer.bestVideoStream().timeBase())
+                    << std::endl;
           SDL_UpdateYUVTexture(sdlTexture, &sdlRect, frm->data[0],
                                frm->linesize[0], frm->data[1], frm->linesize[1],
                                frm->data[2], frm->linesize[2]);
           SDL_RenderClear(ren);
-          SDL_RenderCopy(ren, sdlTexture, NULL, &sdlRect);
+          SDL_RenderCopy(ren, sdlTexture, nullptr, &sdlRect);
           SDL_RenderPresent(ren);
         },
         [&demuxer](const AVPacket* pkt) {
