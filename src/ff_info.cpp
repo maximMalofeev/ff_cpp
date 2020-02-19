@@ -44,6 +44,32 @@ void Info::dumpInputFormats() {
   }
 }
 
+void Info::dumpInputVideoDevices() {
+  AVInputFormat* inputVideoDevice{};
+  inputVideoDevice = av_input_video_device_next(inputVideoDevice);
+  if (inputVideoDevice) {
+    std::cout << "==Input video devices==" << std::endl;
+  }
+  while (inputVideoDevice) {
+    std::cout << inputVideoDevice->name << " - " << inputVideoDevice->long_name
+              << std::endl;
+    inputVideoDevice = av_input_video_device_next(inputVideoDevice);
+  }
+}
+
+void Info::dumpOutputVideoDevices() {
+  AVOutputFormat* outputVideoDevice{};
+  outputVideoDevice = av_output_video_device_next(outputVideoDevice);
+  if (outputVideoDevice) {
+    std::cout << "==Input video devices==" << std::endl;
+  }
+  while (outputVideoDevice) {
+    std::cout << outputVideoDevice->name << " - "
+              << outputVideoDevice->long_name << std::endl;
+    outputVideoDevice = av_output_video_device_next(outputVideoDevice);
+  }
+}
+
 void Info::dumpCodecs() {
   void* opaque = nullptr;
   std::cout << "==Codecs==" << std::endl;

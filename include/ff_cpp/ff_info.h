@@ -9,6 +9,8 @@ class FF_CPP_API Info {
   static void dumpInputProtocols();
   static void dumpOutputFormats();
   static void dumpInputFormats();
+  static void dumpInputVideoDevices();
+  static void dumpOutputVideoDevices();
   static void dumpCodecs();
   static void dumpFilters();
   static void dumpConfiguration();

@@ -10,6 +10,7 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/avutil.h>
 #include <libavutil/imgutils.h>
+#include <libavdevice/avdevice.h>
 }
 
 #if defined(WIN32) && defined(FF_CPP_SHARED)

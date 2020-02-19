@@ -25,7 +25,14 @@ using frame_callback = std::function<void(const AVFrame*)>;
 
 class Demuxer {
  public:
-  FF_CPP_API Demuxer(const std::string& inputSource);
+ /**
+  * @brief Demuxer constructor
+  * 
+  * @param inputSource - url of input source
+  * @param inputFormat - format you want to force demuxer to use
+  * @return FF_CPP_API 
+  */
+  FF_CPP_API Demuxer(const std::string& inputSource, const std::string& inputFormat = "");
   FF_CPP_API ~Demuxer();
 
   /**

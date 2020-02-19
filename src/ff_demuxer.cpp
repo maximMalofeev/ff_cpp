@@ -28,6 +28,7 @@ constexpr int COMMON_TIMEOUT = 5;
 
 struct Demuxer::Impl {
   std::string input;
+  std::string inputFormat;
   UniqFormatContext demuxerContext{nullptr, avFormatDeleater};
   std::vector<Stream> streams;
   std::map<int, Decoder> decoders;
@@ -60,9 +61,10 @@ struct Demuxer::Impl {
   }
 };
 
-Demuxer::Demuxer(const std::string& inputSource) {
+Demuxer::Demuxer(const std::string& inputSource, const std::string& inputFormat) {
   impl_ = std::make_unique<Impl>();
   impl_->input = inputSource;
+  impl_->inputFormat = inputFormat;
 }
 
 Demuxer::~Demuxer() {}
@@ -79,10 +81,12 @@ void Demuxer::prepare(const ParametersContainer& params, unsigned int timeout) {
     av_dict_set(&optionsDict, param.first.c_str(), param.second.c_str(), 0);
   }
 
+  AVInputFormat* iFormat = av_find_input_format(impl_->inputFormat.c_str());
+
   impl_->timeout = std::chrono::seconds{timeout};
   impl_->updateRequestTime();
 
-  if (auto err = avformat_open_input(&fmtCntxt, impl_->input.c_str(), nullptr,
+  if (auto err = avformat_open_input(&fmtCntxt, impl_->input.c_str(), iFormat,
                                      &optionsDict);
       err == EXIT_SUCCESS) {
     impl_->demuxerContext.reset(fmtCntxt);
