@@ -17,7 +17,20 @@ try {
   demuxer.prepare({{"fflags", "autobsf+discardcorrupt+genpts+ignidx+igndts"},
                    {"rtsp_transport", "tcp"},
                    {"allowed_media_types", "video"}},
-                  5); // or just demuxer.prepare() if no options required
+                  5);
+  /*
+  or just demuxer.prepare() if no options required
+
+  or if you want to open web camera
+  ff_cpp::Demuxer demuxer("video=USB2.0 UVC HQ WebCam", "dshow");
+  try {
+    demuxer.prepare({{"video_size","hd720"}});
+    ...
+  }catch (const ff_cpp::FFCppException& e) {
+    ...
+  }
+  ...
+  */
   std::cout << demuxer << std::endl;
   auto& vStream = demuxer.bestVideoStream();
 
