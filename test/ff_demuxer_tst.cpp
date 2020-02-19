@@ -2,7 +2,6 @@
                            // this in one cpp file
 #include <ff_cpp/ff_demuxer.h>
 #include <ff_cpp/ff_exception.h>
-
 #include <catch2/catch.hpp>
 
 const std::string url("file:small_bunny_1080p_60fps.mp4");
