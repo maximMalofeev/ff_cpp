@@ -100,7 +100,6 @@ void Demuxer::prepare(const ParametersContainer& params, unsigned int timeout) {
     }
 
     for (unsigned int i = 0; i < impl_->demuxerContext->nb_streams; i++) {
-      impl_->demuxerContext->streams[i]->discard = AVDISCARD_DEFAULT;
       impl_->streams.emplace_back(Stream{impl_->demuxerContext->streams[i]});
     }
 

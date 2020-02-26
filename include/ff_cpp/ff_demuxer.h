@@ -32,7 +32,7 @@ class Demuxer {
   * @param inputFormat - format you want to force demuxer to use
   * @return FF_CPP_API 
   */
-  FF_CPP_API Demuxer(const std::string& inputSource, const std::string& inputFormat = "");
+  FF_CPP_API explicit Demuxer(const std::string& inputSource, const std::string& inputFormat = "");
   FF_CPP_API ~Demuxer();
 
   /**

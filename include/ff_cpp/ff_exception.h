@@ -5,12 +5,12 @@ namespace ff_cpp {
 
 class FFCppException : public std::runtime_error {
  public:
-  FFCppException(const std::string& msg) : std::runtime_error(msg) {}
+  explicit FFCppException(const std::string& msg) : std::runtime_error(msg) {}
 };
 
 class TimeoutElapsed : public FFCppException {
  public:
-  TimeoutElapsed(const std::string& msg) : FFCppException(msg) {}
+  explicit TimeoutElapsed(const std::string& msg) : FFCppException(msg) {}
 };
 
 class BadInput : public FFCppException {
@@ -35,7 +35,7 @@ class OptionsNotAccepted : public FFCppException {
 
 class NoStream : public FFCppException {
  public:
-  NoStream(const std::string& msg) : FFCppException(msg) {}
+  explicit NoStream(const std::string& msg) : FFCppException(msg) {}
 };
 
 class NoDecoder : public FFCppException {
@@ -50,7 +50,7 @@ class NoDecoder : public FFCppException {
 
 class ProcessingError : public FFCppException {
  public:
-  ProcessingError(const std::string& msg) : FFCppException(msg) {}
+  explicit ProcessingError(const std::string& msg) : FFCppException(msg) {}
 };
 
 }  // namespace ff_cpp
