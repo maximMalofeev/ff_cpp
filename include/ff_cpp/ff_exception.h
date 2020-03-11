@@ -53,4 +53,14 @@ class ProcessingError : public FFCppException {
   explicit ProcessingError(const std::string& msg) : FFCppException(msg) {}
 };
 
+class EndOfFile : public FFCppException {
+ public:
+  explicit EndOfFile(const std::string& msg) : FFCppException(msg) {}
+};
+
+class FilterError : public FFCppException {
+ public:
+  explicit FilterError(const std::string& msg) : FFCppException(msg) {}
+};
+
 }  // namespace ff_cpp

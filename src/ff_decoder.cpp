@@ -3,14 +3,14 @@
 
 namespace ff_cpp {
 
-static void avCodecDeleater(AVCodecContext* ctxt) {
+static void avCodecDeleter(AVCodecContext* ctxt) {
   avcodec_free_context(&ctxt);
 };
 using UniqCodecContext =
-    std::unique_ptr<AVCodecContext, decltype(avCodecDeleater)*>;
+    std::unique_ptr<AVCodecContext, decltype(avCodecDeleter)*>;
 
 struct Decoder::Impl {
-  UniqCodecContext decoderContext{nullptr, avCodecDeleater};
+  UniqCodecContext decoderContext{nullptr, avCodecDeleter};
 };
 
 Decoder::Decoder(AVCodecID codecId, AVCodecParameters* codecpar,
@@ -76,11 +76,11 @@ FF_CPP_API int Decoder::format() const {
   return impl_->decoderContext->pix_fmt;
 }
 
-int Decoder::sendPacket(const AVPacket* pkt) const {
+int Decoder::sendPacket(Packet& pkt) const {
   return avcodec_send_packet(impl_->decoderContext.get(), pkt);
 }
 
-int Decoder::receiveFrame(AVFrame* frame) {
+int Decoder::receiveFrame(Frame& frame) {
   return avcodec_receive_frame(impl_->decoderContext.get(), frame);
 }
 

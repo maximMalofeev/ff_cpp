@@ -25,7 +25,10 @@ set(sources "include/ff_cpp/ff_include.h" "include/ff_cpp/ff_exception.h"
   "include/ff_cpp/ff_info.h" "src/ff_info.cpp"
   "include/ff_cpp/ff_demuxer.h" "src/ff_demuxer.cpp"
   "include/ff_cpp/ff_stream.h" "src/ff_stream.cpp"
-  "include/ff_cpp/ff_decoder.h" "src/ff_decoder.cpp")
+  "include/ff_cpp/ff_decoder.h" "src/ff_decoder.cpp"
+  "include/ff_cpp/ff_filter.h" "src/ff_filter.cpp"
+  "include/ff_cpp/ff_packet.h" "src/ff_packet.cpp"
+  "include/ff_cpp/ff_frame.h" "src/ff_frame.cpp")
 
 add_library(${PROJECT_NAME} ${sources})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)

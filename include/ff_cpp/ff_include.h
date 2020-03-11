@@ -2,6 +2,7 @@
 
 #include <string>
 #include <map>
+#include <vector>
 #include <stdexcept>
 
 extern "C" {
@@ -11,6 +12,9 @@ extern "C" {
 #include <libavutil/avutil.h>
 #include <libavutil/imgutils.h>
 #include <libavdevice/avdevice.h>
+#include <libavfilter/buffersink.h>
+#include <libavfilter/buffersrc.h>
+#include <libswscale/swscale.h>
 }
 
 #if defined(WIN32) && defined(FF_CPP_SHARED)

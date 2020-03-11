@@ -85,7 +85,7 @@ void Info::dumpFilters() {
   std::cout << "==Filters==" << std::endl;
   auto filter = av_filter_iterate(&opaque);
   while (filter) {
-    std::cout << filter->name << std::endl;
+    std::cout << filter->name << " - " << filter->description << std::endl;
     filter = av_filter_iterate(&opaque);
   }
 }

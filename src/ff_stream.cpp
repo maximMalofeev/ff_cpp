@@ -32,11 +32,18 @@ int Stream::height() const { return impl_->stream->codecpar->height; }
 
 int Stream::format() const { return impl_->stream->codecpar->format; }
 
-int Stream::averageFPS() const {
-  return impl_->stream->avg_frame_rate.num / impl_->stream->avg_frame_rate.den;
+AVRational Stream::averageFPS() const { 
+  if(impl_->stream->avg_frame_rate.num == 0 && impl_->stream->avg_frame_rate.den == 0){
+    return AVRational{0,1};
+  }
+  return impl_->stream->avg_frame_rate; 
 }
 
 AVRational Stream::timeBase() const { return impl_->stream->time_base; }
+
+AVRational Stream::pixelAspectRatio() const {
+  return impl_->stream->sample_aspect_ratio;
+}
 
 std::ostream& operator<<(std::ostream& ost, const Stream& s) {
   ost << "Stream:\n";

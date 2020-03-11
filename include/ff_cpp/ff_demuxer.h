@@ -6,7 +6,9 @@
 #include <vector>
 
 #include <ff_cpp\ff_decoder.h>
+#include <ff_cpp\ff_frame.h>
 #include <ff_cpp\ff_include.h>
+#include <ff_cpp\ff_packet.h>
 #include <ff_cpp\ff_stream.h>
 
 namespace ff_cpp {
@@ -16,23 +18,24 @@ namespace ff_cpp {
  * required return true to decode packet, false to discard it
  * @note return true has a sense only if decoder for appropriate stream created
  */
-using packet_callback = std::function<bool(const AVPacket*)>;
+using packet_callback = std::function<bool(Packet&)>;
 
 /**
  * @brief frame_callback will called each time packet decoded
  */
-using frame_callback = std::function<void(const AVFrame*)>;
+using frame_callback = std::function<void(Frame&)>;
 
 class Demuxer {
  public:
- /**
-  * @brief Demuxer constructor
-  * 
-  * @param inputSource - url of input source
-  * @param inputFormat - format you want to force demuxer to use
-  * @return FF_CPP_API 
-  */
-  FF_CPP_API explicit Demuxer(const std::string& inputSource, const std::string& inputFormat = "");
+  /**
+   * @brief Demuxer constructor
+   *
+   * @param inputSource - url of input source
+   * @param inputFormat - format you want to force demuxer to use
+   * @return FF_CPP_API
+   */
+  FF_CPP_API explicit Demuxer(const std::string& inputSource,
+                              const std::string& inputFormat = "");
   FF_CPP_API ~Demuxer();
 
   /**
@@ -107,11 +110,12 @@ class Demuxer {
    * call
    * @exception FFCppException if demuxer not prepared
    * @exception ProcessingError if error occured while demuxind\decoding routine
+   * @exception EndOfFile if end of file reached while read frame from input
+   * source
    * @exception TimeoutElapsed if timeout elapsed while read frames
    */
-  FF_CPP_API void start(frame_callback fc = [](const AVFrame*) {},
-                        packet_callback pc =
-                            [](const AVPacket*) { return true; });
+  FF_CPP_API void start(frame_callback fc = [](Frame&) {},
+                        packet_callback pc = [](Packet&) { return true; });
 
   /**
    * @brief Stop demuxing/decoding routine

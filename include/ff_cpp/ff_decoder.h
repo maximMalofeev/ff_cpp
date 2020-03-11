@@ -1,5 +1,7 @@
 #pragma once
 #include <ff_cpp/ff_include.h>
+#include <ff_cpp/ff_packet.h>
+#include <ff_cpp/ff_frame.h>
 
 namespace ff_cpp {
 
@@ -29,8 +31,8 @@ class Decoder {
   FF_CPP_API int height() const;
   FF_CPP_API int format() const;
 
-  FF_CPP_API int sendPacket(const AVPacket* pkt) const;
-  FF_CPP_API int receiveFrame(AVFrame* frame);
+  FF_CPP_API int sendPacket(Packet& pkt) const;
+  FF_CPP_API int receiveFrame(Frame& frame);
 
   FF_CPP_API friend std::ostream& operator<<(std::ostream& ost,
                                              const Decoder& dcdr);

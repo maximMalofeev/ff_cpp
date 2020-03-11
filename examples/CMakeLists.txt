@@ -1,2 +1,1 @@
-add_subdirectory(rtsp_player)
-add_subdirectory(device_player)
+add_subdirectory(ff_player)

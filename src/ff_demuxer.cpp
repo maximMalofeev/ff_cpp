@@ -9,27 +9,18 @@
 
 namespace ff_cpp {
 
-static void avFormatDeleater(AVFormatContext* ctxt) {
+static void avFormatDeleter(AVFormatContext* ctxt) {
   avformat_close_input(&ctxt);
 };
 using UniqFormatContext =
-    std::unique_ptr<AVFormatContext, decltype(avFormatDeleater)*>;
-
-static void avFrameDeleter(AVFrame* frame) { av_frame_free(&frame); }
-using UniqFrame = std::unique_ptr<AVFrame, decltype(avFrameDeleter)*>;
-
-static void avPacketDeleter(AVPacket* pkt){
-  av_packet_unref(pkt);
-  delete pkt;
-}
-using UniqPacket = std::unique_ptr<AVPacket, decltype(avPacketDeleter)*>;
+    std::unique_ptr<AVFormatContext, decltype(avFormatDeleter)*>;
 
 constexpr int COMMON_TIMEOUT = 5;
 
 struct Demuxer::Impl {
   std::string input;
   std::string inputFormat;
-  UniqFormatContext demuxerContext{nullptr, avFormatDeleater};
+  UniqFormatContext demuxerContext{nullptr, avFormatDeleter};
   std::vector<Stream> streams;
   std::map<int, Decoder> decoders;
 
@@ -61,7 +52,8 @@ struct Demuxer::Impl {
   }
 };
 
-Demuxer::Demuxer(const std::string& inputSource, const std::string& inputFormat) {
+Demuxer::Demuxer(const std::string& inputSource,
+                 const std::string& inputFormat) {
   impl_ = std::make_unique<Impl>();
   impl_->input = inputSource;
   impl_->inputFormat = inputFormat;
@@ -178,38 +170,41 @@ void Demuxer::start(frame_callback fc, packet_callback pc) {
     throw FFCppException("Demuxer not prepared");
   }
 
-  UniqFrame frame{av_frame_alloc(), avFrameDeleter};
+  Frame frame;
   int err = EXIT_SUCCESS;
   impl_->doWork = true;
   impl_->timeout = std::chrono::seconds{COMMON_TIMEOUT};
 
   while (impl_->doWork) {
-    UniqPacket packet{new AVPacket, avPacketDeleter};
+    Packet packet;
     impl_->updateRequestTime();
-    if ((err = av_read_frame(impl_->demuxerContext.get(), packet.get())) <
+    if ((err = av_read_frame(impl_->demuxerContext.get(), packet)) <
         EXIT_SUCCESS) {
       if (impl_->timeoutElapsed) {
         throw TimeoutElapsed("Timeout elapsed while read frame");
+      }
+      if (err == AVERROR_EOF) {
+        throw EndOfFile("End of file reached");
       }
       throw ProcessingError(std::string{"av_read_frame error: "} +
                             av_err2str(err));
     }
 
-    if (pc(packet.get()) &&
-        (impl_->decoders.find(packet->stream_index) != impl_->decoders.end())) {
-      auto& decoder = impl_->decoders.at(packet->stream_index);
+    if (pc(packet) &&
+        (impl_->decoders.find(packet.streamIndex()) != impl_->decoders.end())) {
+      auto& decoder = impl_->decoders.at(packet.streamIndex());
       impl_->updateRequestTime();
-      if (err = decoder.sendPacket(packet.get()); err >= EXIT_SUCCESS) {
+      if (err = decoder.sendPacket(packet); err >= EXIT_SUCCESS) {
         err = EXIT_SUCCESS;
         while (err >= EXIT_SUCCESS) {
-          err = decoder.receiveFrame(frame.get());
+          err = decoder.receiveFrame(frame);
           if (err == AVERROR(EAGAIN) || err == AVERROR_EOF) {
             break;
           } else if (err == AVERROR(EINVAL) || err < 0) {
             throw ProcessingError(av_err2str(err));
           }
 
-          fc(frame.get());
+          fc(frame);
         }
       } else {
         throw ProcessingError(av_err2str(err));
@@ -263,9 +258,11 @@ std::ostream& operator<<(std::ostream& ost, const Demuxer& dmxr) {
             ost << "\t\t\t"
                 << "Resolution: " << stream->codecpar->width << "x"
                 << stream->codecpar->height << "\n";
-            ost << "\t\t\t"
-                << "Average fps: "
-                << stream->avg_frame_rate.num / stream->avg_frame_rate.den;
+            if (stream->avg_frame_rate.den != 0) {
+              ost << "\t\t\t"
+                  << "Average fps: "
+                  << stream->avg_frame_rate.num / stream->avg_frame_rate.den;
+            }
           }
         });
   }

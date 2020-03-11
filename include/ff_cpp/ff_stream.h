@@ -32,8 +32,9 @@ class Stream {
   FF_CPP_API int width() const;
   FF_CPP_API int height() const;
   FF_CPP_API int format() const;
-  FF_CPP_API int averageFPS() const;
+  FF_CPP_API AVRational averageFPS() const;
   FF_CPP_API AVRational timeBase() const;
+  FF_CPP_API AVRational pixelAspectRatio() const;
 
   friend class Demuxer;
   FF_CPP_API friend std::ostream& operator<<(std::ostream& ost, const Stream& s);
