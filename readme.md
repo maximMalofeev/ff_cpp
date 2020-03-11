@@ -1,7 +1,7 @@
 # ff_cpp
 
 Simple wrapper around ffmpeg.  
-I made this library to simplify the process of demuxing and decoding inputs. This library gives simple access to received AVPacket and decoded AVFrame.
+I made this library to simplify the process of demuxing, decoding and filtering inputs. This library gives simple access to received AVPacket and decoded AVFrame.
 
 # Prerequires
 
@@ -34,12 +34,19 @@ try {
   std::cout << demuxer << std::endl;
   auto& vStream = demuxer.bestVideoStream();
 
+  ff_cpp::Filter filter("boxblur=10", vStream.width(), vStream.height(),
+                        vStream.format(), {vStream.format()});
+
   demuxer.createDecoder(vStream.index());
   demuxer.start(
-      [&](const AVFrame* frm) {
-        // Work with AVFrame
+      [&](AVFrame* frm) {
+        // Work with original AVFrame...
+
+        // Filter original frame
+        auto filteredFrm = filter.filter(frm);
+        // Work withfiltered frame...
       },
-      [&demuxer](const AVPacket* pkt) {
+      [&demuxer](AVPacket* pkt) {
         // Work with AVPacket, if you want to decode it return true, otherwise false
         if (pkt->stream_index == demuxer.bestVideoStream().index()) {
           return true;
