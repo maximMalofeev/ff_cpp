@@ -3,12 +3,14 @@ from conans import ConanFile, CMake, tools
 
 class FFCPPConan(ConanFile):
     name = "ff_cpp"
-    version = "0.1"
+    version = "0.2"
     license = ""
     author = "Maxim Malofeev maximmalofeev@bk.ru"
     url = "https://github.com/maximMalofeev/ff_cpp.git"
     description = "ff_cpp"
     settings = "os", "compiler", "build_type", "arch"
+    options = {"shared": [True, False]}
+    default_options = {"shared": True}
     generators = "cmake"
     requires = "ffmpeg/4.2.1@bincrafters/stable", "sdl2/2.0.10@bincrafters/stable"
     build_requires = "catch2/2.11.0"

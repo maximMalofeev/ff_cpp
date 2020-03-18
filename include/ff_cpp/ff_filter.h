@@ -26,7 +26,7 @@ class Filter {
   FF_CPP_API Filter(const std::string& filterDescr, int width, int height,
                     int format, std::vector<int> allowedFormats = {});
   FF_CPP_API Filter(Filter&& other);
-  ~Filter();
+  FF_CPP_API ~Filter();
 
   /**
    * @brief This function returns filter description
