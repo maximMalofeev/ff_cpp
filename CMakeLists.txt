@@ -46,6 +46,7 @@ if(WIN32)
 elseif(UNIX)
 endif()
 
+enable_testing()
 add_subdirectory(test)
 add_subdirectory(examples)
 

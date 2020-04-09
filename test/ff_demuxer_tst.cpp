@@ -323,4 +323,25 @@ TEST_CASE("Filter tests", "[filter]") {
 
     SUCCEED();
   }
+  SECTION("Curves filter"){
+    constexpr int width = 1920;
+    constexpr int height = 1080;
+    constexpr int bytesPerPixel = 3;
+    constexpr int format = AV_PIX_FMT_GRAY8;
+    const std::string filterDescr = "curves=all='0/0 0.45/0.45 0.5/0.3 0.75/0.75 1/1'";
+
+    ff_cpp::Frame inFrm {width, height, format};
+
+    ff_cpp::Filter filter(filterDescr, width, height, format, {format});
+    auto filteredFrm = filter.filter(inFrm);
+
+    REQUIRE(inFrm.width() == width);
+    REQUIRE(inFrm.height() == height);
+    REQUIRE(inFrm.format() == format);
+    REQUIRE(filteredFrm.width() == width);
+    REQUIRE(filteredFrm.height() == height);
+    REQUIRE(filteredFrm.format() == format);
+
+    SUCCEED();
+  }
 }
