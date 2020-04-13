@@ -1,7 +1,7 @@
 project(ff_player)
 
 add_executable(${PROJECT_NAME} main.cpp)
-target_link_libraries(${PROJECT_NAME} ff_cpp CONAN_PKG::sdl2)
+target_link_libraries(${PROJECT_NAME} PRIVATE ff_cpp CONAN_PKG::sdl2)
 target_compile_options(${PROJECT_NAME} PRIVATE /std:c++17)
 
 if(WIN32)
