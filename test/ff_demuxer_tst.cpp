@@ -223,6 +223,16 @@ TEST_CASE("Frame tests", "[frame]") {
       REQUIRE(buf[0] == magicNum);
     SUCCEED();
   }
+  SECTION("Check if alignment work"){
+    constexpr int width = 1918;
+    constexpr int height = 1080;
+    constexpr int format = AV_PIX_FMT_GRAY8;
+    ff_cpp::Frame frame{width, height, format, 4};
+    REQUIRE(frame.width() == width);
+    REQUIRE(frame.height() == height);
+    REQUIRE(frame.format() == format);
+    REQUIRE(frame.linesize()[0] == 1920);
+  }
 }
 
 TEST_CASE("Filter tests", "[filter]") {

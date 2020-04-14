@@ -15,18 +15,20 @@ struct Frame::Impl {
 
 Frame::Frame() { impl_ = std::make_unique<Impl>(); }
 
-Frame::Frame(int width, int height, int format) {
+Frame::Frame(int width, int height, int format, int align) {
   impl_ = std::make_unique<Impl>();
   av_image_alloc(impl_->frame->data, impl_->frame->linesize, width, height,
-                 static_cast<AVPixelFormat>(format), 1);
+                 static_cast<AVPixelFormat>(format), align);
   impl_->frame->width = width;
   impl_->frame->height = height;
   impl_->frame->format = format;
 }
 
-Frame::Frame(uint8_t* ptr, int width, int height, int format) {
+Frame::Frame(uint8_t* ptr, int width, int height, int format, int align) {
   impl_ = std::make_unique<Impl>();
-  av_image_fill_arrays(impl_->frame->data, impl_->frame->linesize, ptr, static_cast<AVPixelFormat>(format), width, height, 1);
+  av_image_fill_arrays(impl_->frame->data, impl_->frame->linesize, ptr,
+                       static_cast<AVPixelFormat>(format), width, height,
+                       align);
   impl_->frame->width = width;
   impl_->frame->height = height;
   impl_->frame->format = format;

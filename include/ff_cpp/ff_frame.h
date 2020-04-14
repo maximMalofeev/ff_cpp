@@ -17,8 +17,9 @@ class Frame {
    * @param width - frame width
    * @param height - frame height
    * @param format - frame format
+   * @param align - the value to use for buffer size alignment
    */
-  FF_CPP_API Frame(int width, int height, int format);
+  FF_CPP_API Frame(int width, int height, int format, int align = 1);
   /**
    * @brief Create frame using input buffer with specified parameters
    * 
@@ -26,8 +27,9 @@ class Frame {
    * @param width - buffer width
    * @param height - buffer height
    * @param format - buffer format
+   * @param align - the value to use for buffer size alignment
    */
-  FF_CPP_API Frame(uint8_t* ptr, int width, int height, int format);
+  FF_CPP_API Frame(uint8_t* ptr, int width, int height, int format, int align = 1);
   FF_CPP_API Frame(Frame&& other);
   FF_CPP_API ~Frame();
 
