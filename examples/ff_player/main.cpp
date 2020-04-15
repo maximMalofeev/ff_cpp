@@ -43,7 +43,7 @@ Args parseArgs(int argc, char** argv) {
   }
 
   if (args.find(PARAM_FORMAT) != args.end()) {
-    argumets.input = args[PARAM_FORMAT];
+    argumets.format = args[PARAM_FORMAT];
     args.erase(PARAM_FORMAT);
   }
 

@@ -41,6 +41,7 @@ Filter::Filter(const std::string& filterDescr, int width, int height,
   }
 
   AVRational timebase = {1, 25}, fps = {25, 1}, aspectRatio = {0, 1};
+  //TODO: alloc params struct
   std::ostringstream bufFilterDescr;
   bufFilterDescr << "video_size=" << width << "x" << height
                  << ":pix_fmt=" << format << ":time_base=" << timebase.num
@@ -126,14 +127,14 @@ Filter& Filter::operator=(Filter&& other) {
 Frame Filter::filter(Frame& frm) {
   int ret = av_buffersrc_add_frame_flags(
       impl_->bufferSrcCtx, frm,
-      AV_BUFFERSRC_FLAG_PUSH | AV_BUFFERSRC_FLAG_KEEP_REF | AV_BUFFERSRC_FLAG_NO_CHECK_FORMAT);
+      AV_BUFFERSRC_FLAG_PUSH | AV_BUFFERSRC_FLAG_KEEP_REF);
   if (ret < EXIT_SUCCESS) {
     throw ProcessingError("Unable to add frame buffer, reason: " +
                           ff_cpp::av_make_error_string(ret));
   }
 
   Frame outFrm;
-  ret = av_buffersink_get_frame_flags(impl_->bufferSinkCtx, outFrm, AV_BUFFERSINK_FLAG_NO_REQUEST);
+  ret = av_buffersink_get_frame_flags(impl_->bufferSinkCtx, outFrm, 0);
   if (ret < EXIT_SUCCESS) {
     throw ProcessingError("Unable to get frame from sink, reason: " +
                           ff_cpp::av_make_error_string(ret));

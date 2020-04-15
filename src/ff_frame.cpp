@@ -1,3 +1,4 @@
+#include <ff_cpp/ff_exception.h>
 #include <ff_cpp/ff_frame.h>
 
 namespace ff_cpp {
@@ -11,45 +12,33 @@ using UniqFrame = std::unique_ptr<AVFrame, decltype(avFrameDeleter)*>;
 
 struct Frame::Impl {
   UniqFrame frame{av_frame_alloc(), avFrameDeleter};
+  void getBuffer(int width, int height, int format, int align) {
+    frame->width = width;
+    frame->height = height;
+    frame->format = format;
+
+    auto ret = av_frame_get_buffer(frame.get(), align);
+    if (ret < EXIT_SUCCESS) {
+      throw ff_cpp::FFCppException("Unable to alloc buffer, reason: " +
+                                   av_make_error_string(ret));
+    }
+  }
 };
 
 Frame::Frame() { impl_ = std::make_unique<Impl>(); }
 
 Frame::Frame(int width, int height, int format, int align) {
   impl_ = std::make_unique<Impl>();
-  av_image_alloc(impl_->frame->data, impl_->frame->linesize, width, height,
-                 static_cast<AVPixelFormat>(format), align);
-  impl_->frame->width = width;
-  impl_->frame->height = height;
-  impl_->frame->format = format;
-  // impl_->frame->key_frame = 1;
-  // impl_->frame->pict_type = AV_PICTURE_TYPE_I;
-  // impl_->frame->pts = 0;
-  // impl_->frame->pkt_pts = 0;
-  // impl_->frame->pkt_dts = 0;
-  // impl_->frame->color_range = AVCOL_RANGE_JPEG;
-  // impl_->frame->best_effort_timestamp = 0;
-  // impl_->frame->pkt_pos = 0;
-  // impl_->frame->pkt_duration = 1;
+  impl_->getBuffer(width, height, format, align);
 }
 
-Frame::Frame(uint8_t* ptr, int width, int height, int format, int align) {
+Frame::Frame(const uint8_t* ptr, int width, int height, int format, int align) {
   impl_ = std::make_unique<Impl>();
-  av_image_fill_arrays(impl_->frame->data, impl_->frame->linesize, ptr,
-                       static_cast<AVPixelFormat>(format), width, height,
-                       align);
-  impl_->frame->width = width;
-  impl_->frame->height = height;
-  impl_->frame->format = format;
-  // impl_->frame->key_frame = 1;
-  // impl_->frame->pict_type = AV_PICTURE_TYPE_I;
-  //impl_->frame->pts = 0;
-  //impl_->frame->pkt_pts = 0;
-  //impl_->frame->pkt_dts = 0;
-  // impl_->frame->color_range = AVCOL_RANGE_JPEG;
-  // impl_->frame->best_effort_timestamp = 0;
-  // impl_->frame->pkt_pos = 0;
-  // impl_->frame->pkt_duration = 1;
+  impl_->getBuffer(width, height, format, align);
+
+  auto bufSize = av_image_get_buffer_size(static_cast<AVPixelFormat>(format),
+                                          width, height, align);
+  std::copy(ptr, ptr + bufSize, impl_->frame->data[0]);
 }
 
 Frame::Frame(Frame&& other) { impl_ = std::move(other.impl_); }

@@ -18,18 +18,20 @@ class Frame {
    * @param height - frame height
    * @param format - frame format
    * @param align - the value to use for buffer size alignment
+   * @throw FFCppException in case of wrong input params or in case of memory alloc failed
    */
   FF_CPP_API Frame(int width, int height, int format, int align = 1);
   /**
-   * @brief Create frame using input buffer with specified parameters
+   * @brief Create frame copy input buffer with specified parameters
    * 
    * @param ptr - input buffer
    * @param width - buffer width
    * @param height - buffer height
    * @param format - buffer format
    * @param align - the value to use for buffer size alignment
+   * @throw FFCppException in case of wrong input params or in case of memory alloc failed
    */
-  FF_CPP_API Frame(uint8_t* ptr, int width, int height, int format, int align = 1);
+  FF_CPP_API Frame(const uint8_t* ptr, int width, int height, int format, int align = 1);
   FF_CPP_API Frame(Frame&& other);
   FF_CPP_API ~Frame();
 
