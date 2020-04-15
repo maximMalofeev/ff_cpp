@@ -8,6 +8,8 @@
 
 #include <catch2/catch.hpp>
 #include <fstream>
+#include <iterator>
+#include <algorithm>
 
 const std::string url("file:small_bunny_1080p_60fps.mp4");
 const std::string emptyFileUrl("file:empty_file.mp4");
@@ -142,7 +144,6 @@ TEST_CASE("Start/Stop demuxer", "[demuxer]") {
           }
           return false;
         });
-    SUCCEED();
   }
 }
 
@@ -154,7 +155,6 @@ TEST_CASE("Packet tests", "[packet]") {
       REQUIRE(pkt.dts() == AV_NOPTS_VALUE);
       REQUIRE(pkt.streamIndex() == 0);
     }
-    SUCCEED();
   }
 }
 
@@ -172,7 +172,6 @@ TEST_CASE("Frame tests", "[frame]") {
         REQUIRE(frame.linesize()[i] == 0);
       }
     }
-    SUCCEED();
   }
   SECTION("Parameterized Contruction/Destruction") {
     {
@@ -194,7 +193,6 @@ TEST_CASE("Frame tests", "[frame]") {
         REQUIRE(frame.linesize()[i] == 0);
       }
     }
-    SUCCEED();
   }
   SECTION("Construct from allocated buffer"){
       constexpr int width = 1920;
@@ -221,7 +219,6 @@ TEST_CASE("Frame tests", "[frame]") {
         }
       }
       REQUIRE(buf[0] == magicNum);
-    SUCCEED();
   }
   SECTION("Check if alignment work"){
     constexpr int width = 1918;
@@ -269,8 +266,6 @@ TEST_CASE("Filter tests", "[filter]") {
     REQUIRE(filteredFrm.width() == width);
     REQUIRE(filteredFrm.height() == height);
     REQUIRE(filteredFrm.format() == format);
-
-    SUCCEED();
   }
   SECTION("Format filter"){
     constexpr int width = 1920;
@@ -289,13 +284,12 @@ TEST_CASE("Filter tests", "[filter]") {
     REQUIRE(filteredFrm.width() == width);
     REQUIRE(filteredFrm.height() == height);
     REQUIRE(filteredFrm.format() == AV_PIX_FMT_YUV420P);
-    
-    SUCCEED();
   }
   SECTION("Format filter and input frame with the same pix fmt"){
     constexpr int width = 1920;
     constexpr int height = 1080;
     constexpr int format = AV_PIX_FMT_RGB24;
+    constexpr int imgSize = width * height * 3;
     const std::string filterDescr = "format=pix_fmts=rgb24";
 
     ff_cpp::Frame inFrm {width, height, format};
@@ -309,8 +303,7 @@ TEST_CASE("Filter tests", "[filter]") {
     REQUIRE(filteredFrm.width() == width);
     REQUIRE(filteredFrm.height() == height);
     REQUIRE(filteredFrm.format() == format);
-    
-    SUCCEED();
+    REQUIRE(std::equal(inFrm.data()[0], inFrm.data()[0] + imgSize, filteredFrm.data()[0]));
   }
   SECTION("More than one filter"){
     constexpr int width = 1920;
@@ -330,8 +323,6 @@ TEST_CASE("Filter tests", "[filter]") {
     REQUIRE(filteredFrm.width() == width);
     REQUIRE(filteredFrm.height() == height);
     REQUIRE(filteredFrm.format() == AV_PIX_FMT_YUV420P);
-
-    SUCCEED();
   }
   SECTION("Curves filter"){
     constexpr int width = 1920;
@@ -355,6 +346,7 @@ TEST_CASE("Filter tests", "[filter]") {
     constexpr int width = 1918;
     constexpr int height = 1080;
     constexpr int format = AV_PIX_FMT_GRAY8;
+    constexpr int imgSize = width * height * 1;
     const std::string filterDescr = "curves=all='0/0 0.45/0.45 0.5/0.3 0.75/0.75 1/1'";
 
     ff_cpp::Frame inFrm {width, height, format, 4};
@@ -366,5 +358,62 @@ TEST_CASE("Filter tests", "[filter]") {
     REQUIRE(filteredFrm.height() == height);
     REQUIRE(filteredFrm.format() == format);
     REQUIRE(filteredFrm.linesize()[0] == 1920);
+  }
+  SECTION("Test filter"){
+    constexpr int width = 976;
+    constexpr int height = 976;
+    constexpr int format = AV_PIX_FMT_RGB24;
+    constexpr int imgSize = width * height * 3;
+    //const std::string filterDescr = "curves=all='0/0 0.45/0.45 0.5/0.3 0.75/0.75 1/1'";
+    const std::string filterDescr = "format=pix_fmts=rgb24";
+
+    ff_cpp::Filter filter(filterDescr, width, height, format, {format});
+
+    // std::ifstream f{"976x976_rgb24.data", std::ios::binary};
+    // REQUIRE(f);
+
+    std::unique_ptr<char[]> img(new char[imgSize]);
+    for(auto i = 0; i < imgSize; i++){
+      img[i] = imgSize - i;
+    }
+    // f.read(img.get(), imgSize);
+    // REQUIRE(f);
+    // f.close();
+
+    ff_cpp::Frame inFrm {reinterpret_cast<uint8_t*>(img.get()), width, height, format, 4};
+
+    const std::string pngFileUrl("file:976x976.png");
+    ff_cpp::Demuxer demuxer(pngFileUrl);
+    demuxer.prepare({{"pixel_format", "rgb24"}});
+    demuxer.createDecoder(demuxer.bestVideoStream().index());
+    demuxer.start(
+        [&](const ff_cpp::Frame& frm) {
+          REQUIRE(frm.width() == width);
+          REQUIRE(frm.height() == height);
+          REQUIRE(frm.format() ==
+                  static_cast<AVPixelFormat>(format));
+          demuxer.stop();
+
+          auto filteredFrm = filter.filter(const_cast<ff_cpp::Frame&>(frm));
+          REQUIRE(std::equal(frm.data()[0], frm.data()[0] + imgSize, filteredFrm.data()[0]));
+
+          ff_cpp::Frame ff{frm.data()[0], frm.width(), frm.height(), frm.format(), 1};
+          auto ffFrm = filter.filter(const_cast<ff_cpp::Frame&>(ff));
+          REQUIRE(std::equal(ffFrm.data()[0], ffFrm.data()[0] + imgSize, frm.data()[0]));
+        },
+        [&demuxer](const ff_cpp::Packet& pkt) {
+          if (pkt.streamIndex() == demuxer.bestVideoStream().index()) {
+            return true;
+          }
+          return false;
+        });
+
+    auto filteredFrm = filter.filter(inFrm);
+    REQUIRE(std::equal(inFrm.data()[0], inFrm.data()[0] + imgSize, filteredFrm.data()[0]));
+
+    std::ofstream of{"976x976_rgb24.out.data", std::ios::binary};
+    of.write(reinterpret_cast<char*>(filteredFrm.data()[0]), imgSize);
+    REQUIRE(of);
+    of.close();
   }
 }

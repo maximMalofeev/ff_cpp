@@ -22,6 +22,15 @@ Frame::Frame(int width, int height, int format, int align) {
   impl_->frame->width = width;
   impl_->frame->height = height;
   impl_->frame->format = format;
+  // impl_->frame->key_frame = 1;
+  // impl_->frame->pict_type = AV_PICTURE_TYPE_I;
+  // impl_->frame->pts = 0;
+  // impl_->frame->pkt_pts = 0;
+  // impl_->frame->pkt_dts = 0;
+  // impl_->frame->color_range = AVCOL_RANGE_JPEG;
+  // impl_->frame->best_effort_timestamp = 0;
+  // impl_->frame->pkt_pos = 0;
+  // impl_->frame->pkt_duration = 1;
 }
 
 Frame::Frame(uint8_t* ptr, int width, int height, int format, int align) {
@@ -32,6 +41,15 @@ Frame::Frame(uint8_t* ptr, int width, int height, int format, int align) {
   impl_->frame->width = width;
   impl_->frame->height = height;
   impl_->frame->format = format;
+  // impl_->frame->key_frame = 1;
+  // impl_->frame->pict_type = AV_PICTURE_TYPE_I;
+  //impl_->frame->pts = 0;
+  //impl_->frame->pkt_pts = 0;
+  //impl_->frame->pkt_dts = 0;
+  // impl_->frame->color_range = AVCOL_RANGE_JPEG;
+  // impl_->frame->best_effort_timestamp = 0;
+  // impl_->frame->pkt_pos = 0;
+  // impl_->frame->pkt_duration = 1;
 }
 
 Frame::Frame(Frame&& other) { impl_ = std::move(other.impl_); }
