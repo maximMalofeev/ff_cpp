@@ -137,19 +137,19 @@ int main(int argc, char** argv) {
     f.read(img.get(), imgSize);
     f.close();
 
-    ff_cpp::Frame frame{reinterpret_cast<uint8_t*>(img.get()), args.width,
-                        args.height, format, 4};
-    auto filteredFrame = filter.filter(frame);
-
-    SDL_UpdateTexture(sdlTexture, &sdlRect, filteredFrame.data()[0],
-                      filteredFrame.linesize()[0]);
-    SDL_RenderClear(ren);
-    SDL_RenderCopy(ren, sdlTexture, nullptr, &sdlRect);
-    SDL_RenderPresent(ren);
-
     SDL_Event e;
     bool quit = false;
     while (!quit) {
+      ff_cpp::Frame frame{reinterpret_cast<uint8_t*>(img.get()), args.width,
+                          args.height, format, 4};
+      auto filteredFrame = filter.filter(frame);
+
+      SDL_UpdateTexture(sdlTexture, &sdlRect, filteredFrame.data()[0],
+                        filteredFrame.linesize()[0]);
+      SDL_RenderClear(ren);
+      SDL_RenderCopy(ren, sdlTexture, nullptr, &sdlRect);
+      SDL_RenderPresent(ren);
+
       while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {
           quit = true;
