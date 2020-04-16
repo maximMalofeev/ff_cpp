@@ -31,6 +31,7 @@ class Frame {
    * @param align - the value to use for buffer size alignment
    * @throw FFCppException in case of wrong input params or in case of memory alloc failed
    */
+  //TODO: add constructor with deleater that will take ownership of the ptr
   FF_CPP_API Frame(const uint8_t* ptr, int width, int height, int format, int align = 1);
   FF_CPP_API Frame(Frame&& other);
   FF_CPP_API ~Frame();

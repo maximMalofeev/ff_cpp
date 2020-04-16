@@ -38,11 +38,15 @@ class Filter {
    * @brief Filter input frame
    *
    * @param frm - input frame
+   * @param keepRef - if false and if the frame is reference-counted Filter will
+   * take ownership of the reference(s) and reset the frm; if true - if the
+   * frame if reference-counted, create a new reference, otherwise copy the
+   * frame data.
    * @return filtered frame
    * @throw ProcessingError - unable to add input frame to buffer filter,
    * or unable to get filtered frame from sink
    */
-  FF_CPP_API Frame filter(Frame& frm);
+  FF_CPP_API Frame filter(Frame& frm, bool keepRef = false);
 
   FF_CPP_API Filter& operator=(Filter&& other);
 

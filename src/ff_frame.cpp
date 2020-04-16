@@ -35,7 +35,7 @@ Frame::Frame(int width, int height, int format, int align) {
 Frame::Frame(const uint8_t* ptr, int width, int height, int format, int align) {
   impl_ = std::make_unique<Impl>();
   impl_->getBuffer(width, height, format, align);
-
+  
   auto bufSize = av_image_get_buffer_size(static_cast<AVPixelFormat>(format),
                                           width, height, align);
   std::copy(ptr, ptr + bufSize, impl_->frame->data[0]);

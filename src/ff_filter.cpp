@@ -40,8 +40,9 @@ Filter::Filter(const std::string& filterDescr, int width, int height,
     throw FFCppException(av_make_error_string(AVERROR(ENOMEM)));
   }
 
+  // TODO: add ability customise this params
   AVRational timebase = {1, 25}, fps = {25, 1}, aspectRatio = {0, 1};
-  //TODO: alloc params struct
+  // TODO: alloc params struct
   std::ostringstream bufFilterDescr;
   bufFilterDescr << "video_size=" << width << "x" << height
                  << ":pix_fmt=" << format << ":time_base=" << timebase.num
@@ -124,10 +125,12 @@ Filter& Filter::operator=(Filter&& other) {
   return *this;
 }
 
-Frame Filter::filter(Frame& frm) {
-  int ret = av_buffersrc_add_frame_flags(
-      impl_->bufferSrcCtx, frm,
-      AV_BUFFERSRC_FLAG_PUSH | AV_BUFFERSRC_FLAG_KEEP_REF);
+Frame Filter::filter(Frame& frm, bool keepRef) {
+  int flags = AV_BUFFERSRC_FLAG_PUSH;
+  if (keepRef) {
+    flags |= AV_BUFFERSRC_FLAG_KEEP_REF;
+  }
+  int ret = av_buffersrc_add_frame_flags(impl_->bufferSrcCtx, frm, flags);
   if (ret < EXIT_SUCCESS) {
     throw ProcessingError("Unable to add frame buffer, reason: " +
                           ff_cpp::av_make_error_string(ret));
