@@ -24,7 +24,7 @@ class Filter {
    * description
    */
   FF_CPP_API Filter(const std::string& filterDescr, int width, int height,
-                    int format, std::vector<int> allowedFormats = {});
+                    int format, const std::vector<int>& allowedFormats = {});
   FF_CPP_API Filter(Filter&& other);
   FF_CPP_API ~Filter();
 

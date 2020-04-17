@@ -20,15 +20,17 @@ using UniqGraph =
 
 struct Filter::Impl {
   std::string filterDescription;
+  std::vector<int> allowedFormats{};
   AVFilterContext* bufferSinkCtx{};
   AVFilterContext* bufferSrcCtx{};
   UniqGraph filterGraph{nullptr, avFilterGrafDeleter};
 };
 
 Filter::Filter(const std::string& filterDescr, int width, int height,
-               int format, std::vector<int> allowedFormats) {
+               int format, const std::vector<int>& allowedFormats) {
   impl_ = std::make_unique<Impl>();
   impl_->filterDescription = filterDescr;
+  impl_->allowedFormats = allowedFormats;
 
   const AVFilter* buffersrc = avfilter_get_by_name("buffer");
   const AVFilter* buffersink = avfilter_get_by_name("buffersink");
@@ -66,10 +68,10 @@ Filter::Filter(const std::string& filterDescr, int width, int height,
                       av_make_error_string(ret));
   }
 
-  if (!allowedFormats.empty()) {
-    allowedFormats.push_back(AV_PIX_FMT_NONE);
+  if (!impl_->allowedFormats.empty()) {
+    impl_->allowedFormats.push_back(AV_PIX_FMT_NONE);
     ret = av_opt_set_int_list(impl_->bufferSinkCtx, "pix_fmts",
-                              allowedFormats.data(), AV_PIX_FMT_NONE,
+                              impl_->allowedFormats.data(), AV_PIX_FMT_NONE,
                               AV_OPT_SEARCH_CHILDREN);
     if (ret < 0) {
       throw FilterError("Unable to set output pixel formats, reason: " +
