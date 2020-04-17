@@ -130,7 +130,7 @@ int main(int argc, char** argv) {
       return EXIT_FAILURE;
     }
     int imgSize = av_image_get_buffer_size(static_cast<AVPixelFormat>(format),
-                                           args.width, args.height, 1);
+                                           args.width, args.height, 4);
 
     std::unique_ptr<char[]> img(new char[imgSize]);
 
