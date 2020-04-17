@@ -142,7 +142,7 @@ int main(int argc, char** argv) {
     while (!quit) {
       ff_cpp::Frame frame{reinterpret_cast<uint8_t*>(img.get()), args.width,
                           args.height, format, 4};
-      auto filteredFrame = filter.filter(frame);
+      auto filteredFrame = filter.filter(frame, true);
 
       SDL_UpdateTexture(sdlTexture, &sdlRect, filteredFrame.data()[0],
                         filteredFrame.linesize()[0]);

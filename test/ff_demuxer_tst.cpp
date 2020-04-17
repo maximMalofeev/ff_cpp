@@ -276,7 +276,7 @@ TEST_CASE("Filter tests", "[filter]") {
     ff_cpp::Frame inFrm{width, height, format};
 
     ff_cpp::Filter filter(filterDescr, width, height, format);
-    auto filteredFrm = filter.filter(inFrm);
+    auto filteredFrm = filter.filter(inFrm, true);
 
     REQUIRE(inFrm.width() == width);
     REQUIRE(inFrm.height() == height);
@@ -295,7 +295,7 @@ TEST_CASE("Filter tests", "[filter]") {
     ff_cpp::Frame inFrm{width, height, format};
 
     ff_cpp::Filter filter(filterDescr, width, height, format);
-    auto filteredFrm = filter.filter(inFrm);
+    auto filteredFrm = filter.filter(inFrm, true);
 
     REQUIRE(inFrm.width() == width);
     REQUIRE(inFrm.height() == height);
@@ -316,7 +316,7 @@ TEST_CASE("Filter tests", "[filter]") {
     ff_cpp::Frame inFrm{width, height, format};
 
     ff_cpp::Filter filter(filterDescr, width, height, format);
-    auto filteredFrm = filter.filter(inFrm);
+    auto filteredFrm = filter.filter(inFrm, true);
 
     REQUIRE(inFrm.width() == width);
     REQUIRE(inFrm.height() == height);
@@ -335,7 +335,7 @@ TEST_CASE("Filter tests", "[filter]") {
     ff_cpp::Frame inFrm{width, height, format};
 
     ff_cpp::Filter filter(filterDescr, width, height, format, {format});
-    auto filteredFrm = filter.filter(inFrm);
+    auto filteredFrm = filter.filter(inFrm, true);
 
     REQUIRE(inFrm.width() == width);
     REQUIRE(inFrm.height() == height);
@@ -361,45 +361,5 @@ TEST_CASE("Filter tests", "[filter]") {
     REQUIRE(filteredFrm.height() == height);
     REQUIRE(filteredFrm.format() == format);
     REQUIRE(filteredFrm.linesize()[0] == 1920);
-  }
-  SECTION("Filter frame made from buffer") {
-    constexpr int width = 976;
-    constexpr int height = 976;
-    constexpr int align = 1;
-
-    {
-      constexpr int format = AV_PIX_FMT_RGB24;
-      int imgSize = av_image_get_buffer_size(static_cast<AVPixelFormat>(format),
-                                             width, height, align);
-      const std::string filterDescr = "format=pix_fmts=rgb24";
-      ff_cpp::Filter filter(filterDescr, width, height, format, {format});
-
-      std::unique_ptr<char[]> img(new char[imgSize]);
-      for (auto i = 0; i < imgSize; i++) {
-        img[i] = imgSize - i;
-      }
-      ff_cpp::Frame inFrm{reinterpret_cast<uint8_t*>(img.get()), width, height,
-                          format, align};
-      auto filteredFrm = filter.filter(inFrm);
-      REQUIRE(std::equal(inFrm.data()[0], inFrm.data()[0] + imgSize,
-                         filteredFrm.data()[0]));
-    }
-    {
-      constexpr int format = AV_PIX_FMT_YUV420P;
-      int imgSize = av_image_get_buffer_size(static_cast<AVPixelFormat>(format),
-                                             width, height, align);
-      const std::string filterDescr = "format=pix_fmts=yuv420p";
-      ff_cpp::Filter filter(filterDescr, width, height, format, {format});
-
-      std::unique_ptr<char[]> img(new char[imgSize]);
-      for (auto i = 0; i < imgSize; i++) {
-        img[i] = imgSize - i;
-      }
-      ff_cpp::Frame inFrm{reinterpret_cast<uint8_t*>(img.get()), width, height,
-                          format, align};
-      auto filteredFrm = filter.filter(inFrm);
-      REQUIRE(std::equal(inFrm.data()[0], inFrm.data()[0] + imgSize,
-                         filteredFrm.data()[0]));
-    }
   }
 }

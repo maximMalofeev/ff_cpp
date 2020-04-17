@@ -5,7 +5,6 @@ namespace ff_cpp {
 
 static void avFrameDeleter(AVFrame* frame) {
   av_frame_unref(frame);
-  av_freep(&frame->data[0]);
   av_frame_free(&frame);
 }
 using UniqFrame = std::unique_ptr<AVFrame, decltype(avFrameDeleter)*>;
