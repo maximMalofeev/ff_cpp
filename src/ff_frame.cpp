@@ -34,11 +34,14 @@ Frame::Frame(int width, int height, int format, int align) {
 
 Frame::Frame(const uint8_t* ptr, int width, int height, int format, int align) {
   impl_ = std::make_unique<Impl>();
-  impl_->getBuffer(width, height, format, align);
-  
-  auto bufSize = av_image_get_buffer_size(static_cast<AVPixelFormat>(format),
-                                          width, height, align);
-  std::copy(ptr, ptr + bufSize, impl_->frame->data[0]);
+  av_image_fill_arrays(impl_->frame->data, impl_->frame->linesize, ptr,
+                       static_cast<AVPixelFormat>(format), width, height,
+                       align);
+  impl_->frame->extended_data = impl_->frame->data;           
+  impl_->frame->width = width;
+  impl_->frame->height = height;
+  impl_->frame->format = format;
+  impl_->frame->key_frame = 1;
 }
 
 Frame::Frame(Frame&& other) { impl_ = std::move(other.impl_); }

@@ -22,7 +22,8 @@ class Frame {
    */
   FF_CPP_API Frame(int width, int height, int format, int align = 1);
   /**
-   * @brief Create frame copy input buffer with specified parameters
+   * @brief Create frame with input buffer with specified parameters
+   * @note input buffer must exists until frame not destroyed
    * 
    * @param ptr - input buffer
    * @param width - buffer width
