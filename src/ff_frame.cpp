@@ -43,7 +43,7 @@ Frame::Frame(const uint8_t* ptr, int width, int height, int format, int align) {
 
   //No pallet fot y8 images
   if(format == AV_PIX_FMT_GRAY8){
-    impl_->frame->data[1] == nullptr;
+    impl_->frame->data[1] = nullptr;
   }
 }
 
