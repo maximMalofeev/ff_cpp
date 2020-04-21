@@ -40,6 +40,11 @@ Frame::Frame(const uint8_t* ptr, int width, int height, int format, int align) {
   impl_->frame->height = height;
   impl_->frame->format = format;
   impl_->frame->key_frame = 1;
+
+  //No pallet fot y8 images
+  if(format == AV_PIX_FMT_GRAY8){
+    impl_->frame->data[1] == nullptr;
+  }
 }
 
 Frame::Frame(Frame&& other) { impl_ = std::move(other.impl_); }
