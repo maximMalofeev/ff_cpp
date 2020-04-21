@@ -3,10 +3,12 @@
 namespace ff_cpp {
 
 static void avPacketDeleter(AVPacket* pkt) {
-  if (pkt->buf) {
-    av_packet_unref(pkt);
+  if (pkt) {
+    if (pkt->buf) {
+      av_packet_unref(pkt);
+    }
+    av_packet_free(&pkt);
   }
-  av_packet_free(&pkt);
 }
 using UniqPacket = std::unique_ptr<AVPacket, decltype(avPacketDeleter)*>;
 

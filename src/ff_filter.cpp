@@ -7,13 +7,17 @@
 namespace ff_cpp {
 
 static void avFilterInOutDeleter(AVFilterInOut* inOut) {
-  avfilter_inout_free(&inOut);
+  if (inOut) {
+    avfilter_inout_free(&inOut);
+  }
 }
 using UniqInOut =
     std::unique_ptr<AVFilterInOut, decltype(avFilterInOutDeleter)*>;
 
 static void avFilterGrafDeleter(AVFilterGraph* graph) {
-  avfilter_graph_free(&graph);
+  if (graph) {
+    avfilter_graph_free(&graph);
+  }
 }
 using UniqGraph =
     std::unique_ptr<AVFilterGraph, decltype(avFilterGrafDeleter)*>;
@@ -101,9 +105,6 @@ Filter::Filter(const std::string& filterDescr, int width, int height,
     throw FilterError("Unable to config graph, reason: " +
                       av_make_error_string(ret));
   };
-
-  inputs.release();
-  outputs.release();
 }
 
 Filter::Filter(Filter&& other) {

@@ -4,7 +4,9 @@
 namespace ff_cpp {
 
 static void avFrameDeleter(AVFrame* frame) {
-  av_frame_free(&frame);
+  if (frame) {
+    av_frame_free(&frame);
+  }
 }
 using UniqFrame = std::unique_ptr<AVFrame, decltype(avFrameDeleter)*>;
 
@@ -35,14 +37,14 @@ Frame::Frame(const uint8_t* ptr, int width, int height, int format, int align) {
   av_image_fill_arrays(impl_->frame->data, impl_->frame->linesize, ptr,
                        static_cast<AVPixelFormat>(format), width, height,
                        align);
-  impl_->frame->extended_data = impl_->frame->data;           
+  impl_->frame->extended_data = impl_->frame->data;
   impl_->frame->width = width;
   impl_->frame->height = height;
   impl_->frame->format = format;
   impl_->frame->key_frame = 1;
 
-  //No pallet fot y8 images
-  if(format == AV_PIX_FMT_GRAY8){
+  // No pallet fot y8 images
+  if (format == AV_PIX_FMT_GRAY8) {
     impl_->frame->data[1] = nullptr;
   }
 }

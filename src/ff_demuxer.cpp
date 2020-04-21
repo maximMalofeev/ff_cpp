@@ -10,7 +10,9 @@
 namespace ff_cpp {
 
 static void avFormatDeleter(AVFormatContext* ctxt) {
-  avformat_close_input(&ctxt);
+  if (ctxt) {
+    avformat_close_input(&ctxt);
+  }
 };
 using UniqFormatContext =
     std::unique_ptr<AVFormatContext, decltype(avFormatDeleter)*>;

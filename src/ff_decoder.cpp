@@ -4,7 +4,9 @@
 namespace ff_cpp {
 
 static void avCodecDeleter(AVCodecContext* ctxt) {
-  avcodec_free_context(&ctxt);
+  if (ctxt) {
+    avcodec_free_context(&ctxt);
+  }
 };
 using UniqCodecContext =
     std::unique_ptr<AVCodecContext, decltype(avCodecDeleter)*>;
@@ -15,11 +17,12 @@ struct Decoder::Impl {
 
 Decoder::Decoder(AVCodecID codecId, AVCodecParameters* codecpar,
                  const ParametersContainer& userParams) {
-  impl_= std::make_unique<Impl>();
+  impl_ = std::make_unique<Impl>();
   auto decoder = avcodec_find_decoder(codecId);
   if (!decoder) {
     throw NoDecoder(std::string{"Decoder for codec "} +
-                         avcodec_get_name(codecId) + " not found", codecId);
+                        avcodec_get_name(codecId) + " not found",
+                    codecId);
   }
 
   auto decoderContext = avcodec_alloc_context3(decoder);
