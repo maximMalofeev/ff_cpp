@@ -93,8 +93,8 @@ Filter::Filter(const std::string& filterDescr, int width, int height,
   inputs->pad_idx = 0;
   inputs->next = nullptr;
 
-  auto inputsPtr = inputs.get();
-  auto outputsPtr = outputs.get();
+  auto inputsPtr = inputs.release();
+  auto outputsPtr = outputs.release();
   if ((ret = avfilter_graph_parse_ptr(impl_->filterGraph.get(),
                                       impl_->filterDescription.c_str(),
                                       &inputsPtr, &outputsPtr, nullptr)) < 0) {
