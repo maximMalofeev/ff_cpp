@@ -9,8 +9,8 @@ class FFCPPConan(ConanFile):
     url = "https://github.com/maximMalofeev/ff_cpp.git"
     description = "ff_cpp"
     settings = "os", "compiler", "build_type", "arch"
-    options = {"shared": [True, False]}
-    default_options = {"shared": True}
+    options = {"shared": [True, False], "RelWithDebInfo": [True, False]}
+    default_options = {"shared": True, "RelWithDebInfo": False}
     generators = "cmake"
     requires = "ffmpeg/4.2.1@bincrafters/stable", "sdl2/2.0.12@bincrafters/stable"
     build_requires = "catch2/2.11.0"
@@ -28,6 +28,8 @@ class FFCPPConan(ConanFile):
 
     def build(self):
         cmake = CMake(self)
+        if self.settings.build_type=="Release" and self.options.RelWithDebInfo==True:
+            cmake.build_type = 'RelWithDebInfo'
         cmake.configure(source_folder="ff_cpp")
         cmake.build()
 
