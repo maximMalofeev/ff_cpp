@@ -2,13 +2,14 @@
 #include <ff_cpp/ff_demuxer.h>
 #include <ff_cpp/ff_exception.h>
 #include <ff_cpp/ff_filter.h>
+
 #include <iostream>
 #include <mutex>
 #include <thread>
 
 constexpr int TIMEOUT = 5;
-constexpr int x_pos = 100;
-constexpr int y_pos = 100;
+constexpr int x_pos = 20;
+constexpr int y_pos = 40;
 const std::string PARAM_INPUT = "input";
 const std::string PARAM_FORMAT = "format";
 const std::string PARAM_FILTER = "filter";
@@ -83,6 +84,21 @@ int main(int argc, char** argv) {
                           : args.filter += "," + filterFormat;
     }
 
+    constexpr int maxW = 800;
+    constexpr int maxH = 600;
+    constexpr double resizeFactor = 1.2;
+    int wndWidth = vStream.width();
+    int wndHeight = vStream.height();
+    while (wndWidth > maxW || wndHeight > maxH) {
+      wndWidth = static_cast<int>(wndWidth / resizeFactor);
+      wndHeight = static_cast<int>(wndHeight / resizeFactor);
+    }
+
+    if (wndWidth != vStream.width() || wndHeight != vStream.height()) {
+      args.filter += ",scale=" + std::to_string(wndWidth) + ":" +
+                     std::to_string(wndHeight);
+    }
+
     ff_cpp::Filter filter{args.filter, vStream.width(), vStream.height(),
                           vStream.format()};
 
@@ -91,9 +107,8 @@ int main(int argc, char** argv) {
       return 1;
     }
 
-    SDL_Window* win =
-        SDL_CreateWindow("Hello World!", x_pos, y_pos, vStream.width(),
-                         vStream.height(), SDL_WINDOW_OPENGL);
+    SDL_Window* win = SDL_CreateWindow("Hello World!", x_pos, y_pos, wndWidth,
+                                       wndHeight, SDL_WINDOW_OPENGL);
     if (win == nullptr) {
       std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
       SDL_Quit();
@@ -108,59 +123,60 @@ int main(int argc, char** argv) {
       return 1;
     }
 
-    SDL_Texture* sdlTexture = SDL_CreateTexture(
-        ren, SDL_PIXELFORMAT_IYUV, SDL_TEXTUREACCESS_STREAMING, vStream.width(),
-        vStream.height());
+    SDL_Texture* sdlTexture =
+        SDL_CreateTexture(ren, SDL_PIXELFORMAT_IYUV,
+                          SDL_TEXTUREACCESS_STREAMING, wndWidth, wndHeight);
 
     SDL_Rect sdlRect;
     sdlRect.x = 0;
     sdlRect.y = 0;
-    sdlRect.w = vStream.width();
-    sdlRect.h = vStream.height();
+    sdlRect.w = wndWidth;
+    sdlRect.h = wndHeight;
 
     bool quit = false;
     std::mutex sdlMutex;
-    std::thread demuxerThread{[&]() {
-      try {
-        demuxer.start(
-            [&](ff_cpp::Frame& frm) {
-              std::cout << "Pts: "
-                        << frm.pts() *
-                               av_q2d(demuxer.bestVideoStream().timeBase())
-                        << std::endl;
+    std::thread demuxerThread{
+        [&]() {
+          try {
+            demuxer.start(
+                [&](ff_cpp::Frame& frm) {
+                  std::cout << "Pts: "
+                            << frm.pts() *
+                                   av_q2d(demuxer.bestVideoStream().timeBase())
+                            << std::endl;
 
-              auto startFiltering = std::chrono::steady_clock::now();
-              auto filteredFrm = filter.filter(frm);
-              std::cout
-                  << "Filtering took "
-                  << std::chrono::duration_cast<std::chrono::milliseconds>(
-                         std::chrono::steady_clock::now() - startFiltering)
-                         .count()
-                  << "ms" << std::endl;
-                  
-              std::lock_guard<std::mutex> lg{sdlMutex};
-              SDL_UpdateYUVTexture(
-                  sdlTexture, &sdlRect, filteredFrm.data()[0],
-                  filteredFrm.linesize()[0], filteredFrm.data()[1],
-                  filteredFrm.linesize()[1], filteredFrm.data()[2],
-                  filteredFrm.linesize()[2]);
-              SDL_RenderClear(ren);
-              SDL_RenderCopy(ren, sdlTexture, nullptr, &sdlRect);
-              SDL_RenderPresent(ren);
-            },
-            [&demuxer](ff_cpp::Packet& pkt) {
-              if (pkt.streamIndex() == demuxer.bestVideoStream().index()) {
-                return true;
-              }
-              return false;
-            });
-      } catch (const ff_cpp::EndOfFile& e) {
-        std::cout << e.what() << std::endl;
-      } catch (const ff_cpp::FFCppException& e) {
-        std::cerr << e.what() << std::endl;
-        quit = true;
-      }
-    }};
+                  auto startFiltering = std::chrono::steady_clock::now();
+                  auto filteredFrm = filter.filter(frm);
+                  std::cout
+                      << "Filtering took "
+                      << std::chrono::duration_cast<std::chrono::milliseconds>(
+                             std::chrono::steady_clock::now() - startFiltering)
+                             .count()
+                      << "ms" << std::endl;
+
+                  std::lock_guard<std::mutex> lg{sdlMutex};
+                  SDL_UpdateYUVTexture(
+                      sdlTexture, &sdlRect, filteredFrm.data()[0],
+                      filteredFrm.linesize()[0], filteredFrm.data()[1],
+                      filteredFrm.linesize()[1], filteredFrm.data()[2],
+                      filteredFrm.linesize()[2]);
+                  SDL_RenderClear(ren);
+                  SDL_RenderCopy(ren, sdlTexture, nullptr, &sdlRect);
+                  SDL_RenderPresent(ren);
+                },
+                [&demuxer](ff_cpp::Packet& pkt) {
+                  if (pkt.streamIndex() == demuxer.bestVideoStream().index()) {
+                    return true;
+                  }
+                  return false;
+                });
+          } catch (const ff_cpp::EndOfFile& e) {
+            std::cout << e.what() << std::endl;
+          } catch (const ff_cpp::FFCppException& e) {
+            std::cerr << e.what() << std::endl;
+            quit = true;
+          }
+        }};
 
     SDL_Event e;
     while (!quit) {
