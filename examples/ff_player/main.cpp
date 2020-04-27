@@ -13,12 +13,16 @@ constexpr int y_pos = 40;
 const std::string PARAM_INPUT = "input";
 const std::string PARAM_FORMAT = "format";
 const std::string PARAM_FILTER = "filter";
+const std::string PARAM_MAX_WIDTH = "mw";
+const std::string PARAM_MAX_HEIGHT = "mh";
 
 struct Args {
   std::string input;
   std::string format;
   std::string filter;
   std::map<std::string, std::string> demuxerParams;
+  int maxWidth = 800;
+  int maxHeight = 600;
 };
 
 Args parseArgs(int argc, char** argv) {
@@ -53,6 +57,16 @@ Args parseArgs(int argc, char** argv) {
     args.erase(PARAM_FILTER);
   }
 
+  if (args.find(PARAM_MAX_WIDTH) != args.end()) {
+    argumets.maxWidth = std::stoi(args[PARAM_MAX_WIDTH]);
+    args.erase(PARAM_MAX_WIDTH);
+  }
+
+  if (args.find(PARAM_MAX_HEIGHT) != args.end()) {
+    argumets.maxHeight = std::stoi(args[PARAM_MAX_HEIGHT]);
+    args.erase(PARAM_MAX_HEIGHT);
+  }
+
   argumets.demuxerParams = args;
 
   return argumets;
@@ -64,7 +78,7 @@ int main(int argc, char** argv) {
     args = parseArgs(argc, argv);
   } catch (const std::exception& e) {
     std::cerr << e.what() << '\n';
-    std::cerr << "Usage: ff_player <input=url> [format=format] [filter=filter] "
+    std::cerr << "Usage: ff_player <input=url> [mw=maxWndWidth] [mw=maxWndHeight] [format=format] [filter=filter] "
                  "[[demuxerParam=param]..]"
               << std::endl;
     return 1;
@@ -84,12 +98,10 @@ int main(int argc, char** argv) {
                           : args.filter += "," + filterFormat;
     }
 
-    constexpr int maxW = 800;
-    constexpr int maxH = 600;
     constexpr double resizeFactor = 1.2;
     int wndWidth = vStream.width();
     int wndHeight = vStream.height();
-    while (wndWidth > maxW || wndHeight > maxH) {
+    while (wndWidth > args.maxWidth || wndHeight > args.maxHeight) {
       wndWidth = static_cast<int>(wndWidth / resizeFactor);
       wndHeight = static_cast<int>(wndHeight / resizeFactor);
     }
