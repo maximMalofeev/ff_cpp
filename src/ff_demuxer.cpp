@@ -24,7 +24,7 @@ struct Demuxer::Impl {
   std::string inputFormat;
   UniqFormatContext demuxerContext{nullptr, avFormatDeleter};
   std::vector<Stream> streams;
-  std::map<int, Decoder> decoders;
+  std::map<size_t, Decoder> decoders;
 
   bool doWork{};
 
@@ -148,7 +148,7 @@ Stream& Demuxer::bestVideoStream() const {
   return impl_->streams[streamIndex];
 }
 
-Decoder& Demuxer::createDecoder(int streamIndex, AVCodecID requiredCodec) {
+Decoder& Demuxer::createDecoder(size_t streamIndex, AVCodecID requiredCodec) {
   if (streamIndex >= impl_->streams.size()) {
     throw NoStream("There is no stream with such index");
   }
@@ -163,7 +163,7 @@ Decoder& Demuxer::createDecoder(int streamIndex, AVCodecID requiredCodec) {
   return impl_->decoders.at(stream.index());
 }
 
-const std::map<int, Decoder>& Demuxer::decoders() const {
+const std::map<size_t, Decoder>& Demuxer::decoders() const {
   return impl_->decoders;
 }
 

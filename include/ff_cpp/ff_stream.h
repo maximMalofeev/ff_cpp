@@ -13,7 +13,7 @@ class Stream {
    *
    * @return int
    */
-  FF_CPP_API int index() const;
+  FF_CPP_API size_t index() const;
 
   /**
    * @brief stream media type

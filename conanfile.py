@@ -12,7 +12,7 @@ class FFCPPConan(ConanFile):
     options = {"shared": [True, False], "RelWithDebInfo": [True, False]}
     default_options = {"shared": True, "RelWithDebInfo": False}
     generators = "cmake"
-    requires = "ffmpeg/4.2.1@bincrafters/stable", "sdl2/2.0.12@bincrafters/stable"
+    requires = "ffmpeg/4.0@bincrafters/stable", "sdl2/2.0.9@bincrafters/stable"
     build_requires = "catch2/2.11.0"
 
     def source(self):

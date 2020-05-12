@@ -91,15 +91,15 @@ class Demuxer {
    * @exception NoStream - if streamIndex out of range
    * @return FFDecoder&
    */
-  FF_CPP_API Decoder& createDecoder(int streamIndex,
+  FF_CPP_API Decoder& createDecoder(size_t streamIndex,
                                     AVCodecID requiredCodec = AV_CODEC_ID_NONE);
 
   /**
    * @brief All created decoders, key is stream index
    *
-   * @return const& std::map<int, Decoder>
+   * @return const& std::map<size_t, Decoder>
    */
-  FF_CPP_API const std::map<int, Decoder>& decoders() const;
+  FF_CPP_API const std::map<size_t, Decoder>& decoders() const;
 
   /**
    * @brief Start demuxing/decoding routine, this is blocking function

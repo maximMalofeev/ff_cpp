@@ -15,7 +15,9 @@ Stream::Stream(Stream&& other) { impl_ = std::move(other.impl_); }
 
 Stream::~Stream() {}
 
-int Stream::index() const { return impl_->stream ? impl_->stream->index : -1; }
+size_t Stream::index() const {
+  return impl_->stream ? impl_->stream->index : -1;
+}
 
 AVMediaType Stream::mediaType() const {
   return impl_->stream ? impl_->stream->codecpar->codec_type
@@ -32,11 +34,12 @@ int Stream::height() const { return impl_->stream->codecpar->height; }
 
 int Stream::format() const { return impl_->stream->codecpar->format; }
 
-AVRational Stream::averageFPS() const { 
-  if(impl_->stream->avg_frame_rate.num == 0 && impl_->stream->avg_frame_rate.den == 0){
-    return AVRational{0,1};
+AVRational Stream::averageFPS() const {
+  if (impl_->stream->avg_frame_rate.num == 0 &&
+      impl_->stream->avg_frame_rate.den == 0) {
+    return AVRational{0, 1};
   }
-  return impl_->stream->avg_frame_rate; 
+  return impl_->stream->avg_frame_rate;
 }
 
 AVRational Stream::timeBase() const { return impl_->stream->time_base; }
