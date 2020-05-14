@@ -41,7 +41,7 @@ Args parseArgs(int argc, char** argv) {
     arguments.input = args[PARAM_INPUT];
     args.erase(PARAM_INPUT);
   } else {
-    throw std::runtime_error{PARAM_INPUT + " arg is absent"};
+    // throw std::runtime_error{PARAM_INPUT + " arg is absent"};
   }
   if (args.find(PARAM_WIDTH) != args.end()) {
     arguments.width = std::stoi(args[PARAM_WIDTH]);
@@ -75,8 +75,8 @@ int main(int argc, char** argv) {
     args = parseArgs(argc, argv);
   } catch (const std::exception& e) {
     std::cerr << e.what() << '\n';
-    std::cerr << "Usage: ff_player <input=url> [w=width] [h=height] "
-                 "[format=format] [filter=filter]"
+    std::cerr << "Usage: ff_player [input=url] <w=width> <h=height> "
+                 "<format=format> [filter=filter]"
               << std::endl;
     return EXIT_FAILURE;
   }
@@ -124,24 +124,36 @@ int main(int argc, char** argv) {
     sdlRect.w = args.width;
     sdlRect.h = args.height;
 
-    std::ifstream f{args.input, std::ios::binary};
-    if (!f) {
-      std::cerr << "Unable to open " << args.input << std::endl;
-      return EXIT_FAILURE;
-    }
     int imgSize = av_image_get_buffer_size(static_cast<AVPixelFormat>(format),
-                                           args.width, args.height, 4);
+                                           args.width, args.height, 1);
 
     std::unique_ptr<char[]> img(new char[imgSize]);
 
-    f.read(img.get(), imgSize);
-    f.close();
+    if (!args.input.empty()) {
+      std::ifstream f{args.input, std::ios::binary};
+      if (!f) {
+        std::cerr << "Unable to open " << args.input << std::endl;
+        return EXIT_FAILURE;
+      }
+
+      f.read(img.get(), imgSize);
+      f.close();
+    } else {
+      auto bpl = imgSize / args.height;
+      for (auto i = 0; i < imgSize; i++) {
+        if (i % 10 == 0 || (i / bpl) % 10 == 0) {
+          img[i] = 0;
+        } else {
+          img[i] = (char)255;
+        }
+      }
+    }
 
     SDL_Event e;
     bool quit = false;
     while (!quit) {
       ff_cpp::Frame frame{reinterpret_cast<uint8_t*>(img.get()), args.width,
-                          args.height, format, 4};
+                          args.height, format, 1};
       auto filteredFrame = filter.filter(frame, true);
 
       SDL_UpdateTexture(sdlTexture, &sdlRect, filteredFrame.data()[0],
