@@ -18,13 +18,15 @@ class Filter {
    * @param height - input frame height
    * @param format - input frame format
    * @param allowedFormats - list of allowed output formats
+   * @param autoConvert - allow filter graph convert format
    *
    * @throw FFCppException in case of common errors, like alloc errors
    * @throw FilterError in case of wrong input parameters, or wrong filter
    * description
    */
   FF_CPP_API Filter(const std::string& filterDescr, int width, int height,
-                    int format, const std::vector<int>& allowedFormats = {});
+                    int format, const std::vector<int>& allowedFormats = {},
+                    bool autoConvert = true);
   FF_CPP_API Filter(Filter&& other);
   FF_CPP_API ~Filter();
 

@@ -2,6 +2,7 @@
 #include <ff_cpp/ff_exception.h>
 #include <ff_cpp/ff_filter.h>
 
+#include <chrono>
 #include <fstream>
 #include <iostream>
 
@@ -13,6 +14,8 @@ const std::string PARAM_WIDTH = "w";
 const std::string PARAM_HEIGHT = "h";
 const std::string PARAM_FORMAT = "format";
 const std::string PARAM_FILTER = "filter";
+const std::string PARAM_MAX_WIDTH = "mw";
+const std::string PARAM_MAX_HEIGHT = "mh";
 
 struct Args {
   std::string input;
@@ -20,6 +23,8 @@ struct Args {
   int height;
   std::string format;
   std::string filter;
+  int maxWidth = 800;
+  int maxHeight = 600;
 };
 
 Args parseArgs(int argc, char** argv) {
@@ -65,6 +70,15 @@ Args parseArgs(int argc, char** argv) {
     arguments.filter = args[PARAM_FILTER];
     args.erase(PARAM_FILTER);
   }
+  if (args.find(PARAM_MAX_WIDTH) != args.end()) {
+    arguments.maxWidth = std::stoi(args[PARAM_MAX_WIDTH]);
+    args.erase(PARAM_MAX_WIDTH);
+  }
+
+  if (args.find(PARAM_MAX_HEIGHT) != args.end()) {
+    arguments.maxHeight = std::stoi(args[PARAM_MAX_HEIGHT]);
+    args.erase(PARAM_MAX_HEIGHT);
+  }
 
   return arguments;
 }
@@ -75,13 +89,15 @@ int main(int argc, char** argv) {
     args = parseArgs(argc, argv);
   } catch (const std::exception& e) {
     std::cerr << e.what() << '\n';
-    std::cerr << "Usage: ff_player [input=url] <w=width> <h=height> "
+    std::cerr << "Usage: ff_player [input=url] <w=width> <h=height>"
+                 "[mw=maxWndHeight] [mw=maxWndWidth]"
                  "<format=format> [filter=filter]"
               << std::endl;
     return EXIT_FAILURE;
   }
 
   try {
+    av_log_set_level(AV_LOG_VERBOSE);
     auto format = av_get_pix_fmt(args.format.c_str());
     if (format == AV_PIX_FMT_NONE) {
       std::cerr << args.format << " is unsupported" << std::endl;
@@ -93,14 +109,28 @@ int main(int argc, char** argv) {
       args.filter.empty() ? args.filter = filterFormat
                           : args.filter += "," + filterFormat;
     }
+
+    constexpr double resizeFactor = 1.2;
+    int wndWidth = args.width;
+    int wndHeight = args.height;
+    while (wndWidth > args.maxWidth || wndHeight > args.maxHeight) {
+      wndWidth = static_cast<int>(wndWidth / resizeFactor);
+      wndHeight = static_cast<int>(wndHeight / resizeFactor);
+    }
+
+    if (wndWidth != args.width || wndHeight != args.height) {
+      args.filter += ",scale=" + std::to_string(wndWidth) + ":" +
+                     std::to_string(wndHeight);
+    }
+
     ff_cpp::Filter filter{args.filter, args.width, args.height, format};
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
       std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
       return EXIT_FAILURE;
     }
-    SDL_Window* win = SDL_CreateWindow("Hello World!", x_pos, y_pos, args.width,
-                                       args.height, SDL_WINDOW_OPENGL);
+    SDL_Window* win = SDL_CreateWindow("Raw viewer", x_pos, y_pos, wndWidth,
+                                       wndHeight, SDL_WINDOW_OPENGL);
     if (win == nullptr) {
       std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
       SDL_Quit();
@@ -116,13 +146,13 @@ int main(int argc, char** argv) {
     }
     SDL_Texture* sdlTexture =
         SDL_CreateTexture(ren, SDL_PIXELFORMAT_RGB24,
-                          SDL_TEXTUREACCESS_STREAMING, args.width, args.height);
+                          SDL_TEXTUREACCESS_STREAMING, wndWidth, wndHeight);
 
     SDL_Rect sdlRect;
     sdlRect.x = 0;
     sdlRect.y = 0;
-    sdlRect.w = args.width;
-    sdlRect.h = args.height;
+    sdlRect.w = wndWidth;
+    sdlRect.h = wndHeight;
 
     int imgSize = av_image_get_buffer_size(static_cast<AVPixelFormat>(format),
                                            args.width, args.height, 1);
@@ -149,13 +179,19 @@ int main(int argc, char** argv) {
       }
     }
 
+    ff_cpp::Frame frame{reinterpret_cast<uint8_t*>(img.get()), args.width,
+                        args.height, format, 1};
+    auto startFiltering = std::chrono::steady_clock::now();
+    auto filteredFrame = filter.filter(frame, true);
+    std::cout << "Filtering took "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                     std::chrono::steady_clock::now() - startFiltering)
+                     .count()
+              << "ms" << std::endl;
+
     SDL_Event e;
     bool quit = false;
     while (!quit) {
-      ff_cpp::Frame frame{reinterpret_cast<uint8_t*>(img.get()), args.width,
-                          args.height, format, 1};
-      auto filteredFrame = filter.filter(frame, true);
-
       SDL_UpdateTexture(sdlTexture, &sdlRect, filteredFrame.data()[0],
                         filteredFrame.linesize()[0]);
       SDL_RenderClear(ren);

@@ -26,7 +26,7 @@ struct Args {
 };
 
 Args parseArgs(int argc, char** argv) {
-  Args argumets;
+  Args arguments;
   std::map<std::string, std::string> args;
   for (int i = 1; i < argc; i++) {
     std::string arg{argv[i]};
@@ -41,35 +41,35 @@ Args parseArgs(int argc, char** argv) {
   }
 
   if (args.find(PARAM_INPUT) != args.end()) {
-    argumets.input = args[PARAM_INPUT];
+    arguments.input = args[PARAM_INPUT];
     args.erase(PARAM_INPUT);
   } else {
     throw std::runtime_error{PARAM_INPUT + " arg is absent"};
   }
 
   if (args.find(PARAM_FORMAT) != args.end()) {
-    argumets.format = args[PARAM_FORMAT];
+    arguments.format = args[PARAM_FORMAT];
     args.erase(PARAM_FORMAT);
   }
 
   if (args.find(PARAM_FILTER) != args.end()) {
-    argumets.filter = args[PARAM_FILTER];
+    arguments.filter = args[PARAM_FILTER];
     args.erase(PARAM_FILTER);
   }
 
   if (args.find(PARAM_MAX_WIDTH) != args.end()) {
-    argumets.maxWidth = std::stoi(args[PARAM_MAX_WIDTH]);
+    arguments.maxWidth = std::stoi(args[PARAM_MAX_WIDTH]);
     args.erase(PARAM_MAX_WIDTH);
   }
 
   if (args.find(PARAM_MAX_HEIGHT) != args.end()) {
-    argumets.maxHeight = std::stoi(args[PARAM_MAX_HEIGHT]);
+    arguments.maxHeight = std::stoi(args[PARAM_MAX_HEIGHT]);
     args.erase(PARAM_MAX_HEIGHT);
   }
 
-  argumets.demuxerParams = args;
+  arguments.demuxerParams = args;
 
-  return argumets;
+  return arguments;
 }
 
 int main(int argc, char** argv) {
@@ -78,11 +78,14 @@ int main(int argc, char** argv) {
     args = parseArgs(argc, argv);
   } catch (const std::exception& e) {
     std::cerr << e.what() << '\n';
-    std::cerr << "Usage: ff_player <input=url> [mw=maxWndWidth] [mw=maxWndHeight] [format=format] [filter=filter] "
+    std::cerr << "Usage: ff_player <input=url> [mw=maxWndWidth] "
+                 "[mw=maxWndHeight] [format=format] [filter=filter] "
                  "[[demuxerParam=param]..]"
               << std::endl;
     return 1;
   }
+
+  av_log_set_level(AV_LOG_VERBOSE);
 
   ff_cpp::Demuxer demuxer(args.input, args.format);
   try {
@@ -119,7 +122,7 @@ int main(int argc, char** argv) {
       return 1;
     }
 
-    SDL_Window* win = SDL_CreateWindow("Hello World!", x_pos, y_pos, wndWidth,
+    SDL_Window* win = SDL_CreateWindow("Ff player", x_pos, y_pos, wndWidth,
                                        wndHeight, SDL_WINDOW_OPENGL);
     if (win == nullptr) {
       std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;

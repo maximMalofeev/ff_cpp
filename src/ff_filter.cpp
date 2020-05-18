@@ -31,7 +31,7 @@ struct Filter::Impl {
 };
 
 Filter::Filter(const std::string& filterDescr, int width, int height,
-               int format, const std::vector<int>& allowedFormats) {
+               int format, const std::vector<int>& allowedFormats, bool autoConvert) {
   impl_ = std::make_unique<Impl>();
   impl_->filterDescription = filterDescr;
   impl_->allowedFormats = allowedFormats;
@@ -41,6 +41,7 @@ Filter::Filter(const std::string& filterDescr, int width, int height,
   UniqInOut outputs{avfilter_inout_alloc(), avFilterInOutDeleter};
   UniqInOut inputs{avfilter_inout_alloc(), avFilterInOutDeleter};
   impl_->filterGraph.reset(avfilter_graph_alloc());
+  avfilter_graph_set_auto_convert(impl_->filterGraph.get(), autoConvert);
 
   if (!outputs || !inputs || !impl_->filterGraph) {
     throw FFCppException(av_make_error_string(AVERROR(ENOMEM)));
@@ -48,7 +49,7 @@ Filter::Filter(const std::string& filterDescr, int width, int height,
 
   // TODO: add ability customise this params
   AVRational timebase = {1, 25}, fps = {25, 1}, aspectRatio = {0, 1};
-  // TODO: alloc params struct
+  
   std::ostringstream bufFilterDescr;
   bufFilterDescr << "video_size=" << width << "x" << height
                  << ":pix_fmt=" << format << ":time_base=" << timebase.num
