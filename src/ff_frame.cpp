@@ -61,7 +61,11 @@ int Frame::format() const { return impl_->frame->format; }
 
 int64_t Frame::pts() const { return impl_->frame->pts; }
 
+void Frame::setPts(int64_t pts) { impl_->frame->pts = pts; }
+
 int64_t Frame::dts() const { return impl_->frame->pkt_dts; }
+
+void Frame::setDts(int64_t dts) { impl_->frame->pkt_dts = dts; }
 
 int Frame::numDataPointers() const { return AV_NUM_DATA_POINTERS; }
 

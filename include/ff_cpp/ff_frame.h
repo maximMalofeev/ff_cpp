@@ -42,7 +42,9 @@ class Frame {
   FF_CPP_API int format() const;
 
   FF_CPP_API int64_t pts() const;
+  FF_CPP_API void setPts(int64_t pts);
   FF_CPP_API int64_t dts() const;
+  FF_CPP_API void setDts(int64_t dts);
 
   /**
    * @brief Return number of data pointers, it uses for data and linesize
