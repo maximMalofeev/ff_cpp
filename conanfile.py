@@ -12,8 +12,7 @@ class FFCPPConan(ConanFile):
     options = {"shared": [True, False], "RelWithDebInfo": [True, False]}
     default_options = {"shared": True, "RelWithDebInfo": False}
     generators = "cmake"
-    requires = "ffmpeg/4.0@bincrafters/stable", "sdl2/2.0.9@bincrafters/stable"
-    build_requires = "catch2/2.11.0"
+    requires = "ffmpeg/4.0@bincrafters/stable", "sdl2/2.0.9@bincrafters/stable", "catch2/2.12.2"
 
     def source(self):
        self.run("git clone https://github.com/maximMalofeev/ff_cpp.git")
@@ -46,4 +45,3 @@ class FFCPPConan(ConanFile):
 
     def imports(self):
         self.copy("*.dll", dst="bin", src="bin")
-
