@@ -5,6 +5,7 @@
 
 namespace ff_cpp {
 
+//TODO add copyToBuffer function
 class Frame {
  public:
   /**
