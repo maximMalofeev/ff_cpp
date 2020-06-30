@@ -5,6 +5,7 @@
 #include <ff_cpp/ff_filter.h>
 #include <ff_cpp/ff_frame.h>
 #include <ff_cpp/ff_packet.h>
+#include <ff_cpp/ff_scaler.h>
 
 #include <algorithm>
 #include <catch2/catch.hpp>
@@ -361,5 +362,34 @@ TEST_CASE("Filter tests", "[filter]") {
     REQUIRE(filteredFrm.height() == height);
     REQUIRE(filteredFrm.format() == format);
     REQUIRE(filteredFrm.linesize()[0] == 1920);
+  }
+}
+
+TEST_CASE("Scaler tests", "[scaler]") {
+  SECTION("height == 0 or width == 0 or invalid pix fmt must throw exception") {
+    REQUIRE_THROWS(ff_cpp::Scaler{0, 100, AV_PIX_FMT_GRAY8, AV_PIX_FMT_GRAY8});
+    REQUIRE_THROWS(ff_cpp::Scaler{100, 0, AV_PIX_FMT_GRAY8, AV_PIX_FMT_GRAY8});
+    REQUIRE_THROWS(ff_cpp::Scaler{100, 100, AV_PIX_FMT_NONE, AV_PIX_FMT_GRAY8});
+    REQUIRE_THROWS(ff_cpp::Scaler{100, 100, AV_PIX_FMT_GRAY8, AV_PIX_FMT_NONE});
+  }
+  SECTION("Scaler with proper parameters must work") {
+    constexpr int width = 100;
+    constexpr int height = 100;
+    constexpr int alignment = 4;
+    constexpr AVPixelFormat srcFormat = AV_PIX_FMT_GRAY8;
+    constexpr AVPixelFormat dstFormat = AV_PIX_FMT_RGB24;
+
+    ff_cpp::Scaler scaler{width, height, srcFormat, dstFormat};
+    ff_cpp::Frame srcFrame{width, height, srcFormat, alignment};
+
+    auto scaledFrame = scaler.scale(srcFrame, alignment);
+    REQUIRE(scaledFrame.width() == width);
+    REQUIRE(scaledFrame.height() == height);
+    REQUIRE(scaledFrame.format() == dstFormat);
+
+    ff_cpp::Frame dstFrame{width, height, dstFormat, alignment};
+    scaler.scale(srcFrame, dstFrame);
+
+    SUCCEED();
   }
 }

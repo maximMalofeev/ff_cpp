@@ -1,3 +1,4 @@
+#include <ff_cpp/ff_exception.h>
 #include <ff_cpp/ff_scaler.h>
 
 namespace ff_cpp {
@@ -13,24 +14,34 @@ struct Scaler::Impl {
   AVPixelFormat dstFormat{};
 
   UniqSwsContext swsContext{nullptr, sws_freeContext};
+
+  void setProperties(int width, int height, AVPixelFormat srcFmt,
+                     AVPixelFormat dstFmt) {
+    if (width <= 0 || height <= 0 || srcFmt == AV_PIX_FMT_NONE ||
+        dstFmt == AV_PIX_FMT_NONE) {
+      throw ff_cpp::FFCppException{"Unable to create sws context"};
+    }
+
+    srcWidth = width;
+    srcHeight = height;
+    srcFormat = srcFmt;
+    dstWidth = width;
+    dstHeight = height;
+    dstFormat = dstFmt;
+  }
 };
 
 Scaler::Scaler(int width, int height, AVPixelFormat srcFormat,
                AVPixelFormat dstFormat) {
   impl_.reset(new Impl);
-  impl_->srcWidth = width;
-  impl_->srcHeight = height;
-  impl_->srcFormat = srcFormat;
-  impl_->dstWidth = width;
-  impl_->dstHeight = height;
-  impl_->dstFormat = dstFormat;
 
+  impl_->setProperties(width, height, srcFormat, dstFormat);
   impl_->swsContext.reset(
       sws_getContext(impl_->srcWidth, impl_->srcHeight, impl_->srcFormat,
                      impl_->dstWidth, impl_->dstHeight, impl_->dstFormat,
                      SWS_BILINEAR, nullptr, nullptr, nullptr));
   if (!impl_->swsContext) {
-    throw std::runtime_error{"Unable to create sws context"};
+    throw ff_cpp::FFCppException{"Unable to create sws context"};
   }
 }
 
@@ -40,7 +51,7 @@ ff_cpp::Frame Scaler::scale(ff_cpp::Frame& srcFrame, int dstAlignment) {
   if (srcFrame.width() != impl_->srcWidth ||
       srcFrame.height() != impl_->srcHeight ||
       srcFrame.format() != impl_->srcFormat) {
-    throw std::runtime_error{"Unexpected src frame parameters"};
+    throw ff_cpp::FFCppException{"Unexpected src frame parameters"};
   }
 
   ff_cpp::Frame dstFrame{impl_->dstWidth, impl_->dstHeight, impl_->dstFormat,
@@ -51,7 +62,7 @@ ff_cpp::Frame Scaler::scale(ff_cpp::Frame& srcFrame, int dstAlignment) {
                 0, srcFrame.height(), dstFrame.data(), dstFrame.linesize());
 
   if (outputSliceHeight != srcFrame.height()) {
-    throw std::runtime_error{
+    throw ff_cpp::FFCppException{
         "Output slice height not the same as input frame height"};
   }
 
@@ -62,13 +73,13 @@ ff_cpp::Frame& Scaler::scale(ff_cpp::Frame& srcFrame, ff_cpp::Frame& dstFrame) {
   if (srcFrame.width() != impl_->srcWidth ||
       srcFrame.height() != impl_->srcHeight ||
       srcFrame.format() != impl_->srcFormat) {
-    throw std::runtime_error{"Unexpected src frame parameters"};
+    throw ff_cpp::FFCppException{"Unexpected src frame parameters"};
   }
 
   if (dstFrame.width() != impl_->dstWidth ||
       dstFrame.height() != impl_->dstHeight ||
       dstFrame.format() != impl_->dstFormat) {
-    throw std::runtime_error{"Unexpected dst frame parameters"};
+    throw ff_cpp::FFCppException{"Unexpected dst frame parameters"};
   }
 
   auto outputSliceHeight =
@@ -76,7 +87,7 @@ ff_cpp::Frame& Scaler::scale(ff_cpp::Frame& srcFrame, ff_cpp::Frame& dstFrame) {
                 0, srcFrame.height(), dstFrame.data(), dstFrame.linesize());
 
   if (outputSliceHeight != srcFrame.height()) {
-    throw std::runtime_error{
+    throw ff_cpp::FFCppException{
         "Output slice height not the same as input frame height"};
   }
 
