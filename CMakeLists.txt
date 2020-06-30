@@ -10,12 +10,11 @@ if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
   file(DOWNLOAD "https://github.com/conan-io/cmake-conan/raw/v0.15/conan.cmake"
                 "${CMAKE_BINARY_DIR}/conan.cmake")
 endif()
-
 include(${CMAKE_BINARY_DIR}/conan.cmake)
 
-conan_check(VERSION 1.8.0 REQUIRED)
-conan_add_remote(NAME bincrafters URL "https://api.bintray.com/conan/bincrafters/public-conan")
-conan_add_remote(NAME conan-center URL "https://conan.bintray.com")
+conan_check(VERSION 1.24.0 REQUIRED)
+conan_add_remote(NAME conan-center INDEX 1 URL "https://conan.bintray.com")
+conan_add_remote(NAME bincrafters INDEX 2 URL "https://api.bintray.com/conan/bincrafters/public-conan")
 
 conan_cmake_run(CONANFILE conanfile.py
                 BASIC_SETUP CMAKE_TARGETS
