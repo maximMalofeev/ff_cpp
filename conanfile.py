@@ -3,7 +3,7 @@ from conans import ConanFile, CMake, tools
 
 class FFCPPConan(ConanFile):
     name = "ff_cpp"
-    version = "0.3"
+    version = "0.4"
     license = ""
     author = "Maxim Malofeev maximmalofeev@bk.ru"
     url = "https://github.com/maximMalofeev/ff_cpp.git"
