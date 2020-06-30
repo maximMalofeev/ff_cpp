@@ -12,7 +12,7 @@ C++17
 # Example of usage
 
 ```C++
-ff_cpp::Demuxer demuxer("rtsp://some_ip:5555/Some/Stream/3");
+ff_cpp::Demuxer demuxer{"rtsp://some_ip:5555/Some/Stream/3"};
 try {
   demuxer.prepare({{"fflags", "autobsf+discardcorrupt+genpts+ignidx+igndts"},
                    {"rtsp_transport", "tcp"},
@@ -34,20 +34,25 @@ try {
   std::cout << demuxer << std::endl;
   auto& vStream = demuxer.bestVideoStream();
 
-  ff_cpp::Filter filter("boxblur=10", vStream.width(), vStream.height(),
-                        vStream.format(), {vStream.format()});
+  ff_cpp::Filter filter{"boxblur=10", vStream.width(), vStream.height(),
+                        vStream.format(), {vStream.format()}};
+
+  ff_cpp::Scaler scaler{vStream.width(), vStream.height(), vStream.format(), AV_PIX_FMT_GRAY8};
 
   demuxer.createDecoder(vStream.index());
   demuxer.start(
-      [&](AVFrame* frm) {
-        // Work with original AVFrame...
+      [&](ff_cpp::Frame& frm) {
+        // Work with Frame...
 
         // Filter original frame
         auto filteredFrm = filter.filter(frm);
         // Work withfiltered frame...
+
+        // Scale frame
+        auto scaledFrame = scaler.scale(frm, 32);
       },
-      [&demuxer](AVPacket* pkt) {
-        // Work with AVPacket, if you want to decode it return true, otherwise false
+      [&demuxer](ff_cpp::Packet& pkt) {
+        // Work with Packet, if you want to decode it return true, otherwise false
         if (pkt->stream_index == demuxer.bestVideoStream().index()) {
           return true;
         }
