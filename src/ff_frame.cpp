@@ -1,6 +1,8 @@
 #include <ff_cpp/ff_exception.h>
 #include <ff_cpp/ff_frame.h>
 
+#include <ostream>
+
 namespace ff_cpp {
 
 static void avFrameDeleter(AVFrame* frame) {

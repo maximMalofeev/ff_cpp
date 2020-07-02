@@ -1,5 +1,7 @@
 #include <ff_cpp/ff_packet.h>
 
+#include <ostream>
+
 namespace ff_cpp {
 
 static void avPacketDeleter(AVPacket* pkt) {

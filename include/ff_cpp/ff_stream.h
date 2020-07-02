@@ -1,6 +1,8 @@
 #pragma once
 #include <ff_cpp/ff_include.h>
 
+#include <memory>
+
 namespace ff_cpp {
 
 class Stream {

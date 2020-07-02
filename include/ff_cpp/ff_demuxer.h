@@ -5,11 +5,11 @@
 #include <string>
 #include <vector>
 
-#include <ff_cpp\ff_decoder.h>
-#include <ff_cpp\ff_frame.h>
-#include <ff_cpp\ff_include.h>
-#include <ff_cpp\ff_packet.h>
-#include <ff_cpp\ff_stream.h>
+#include <ff_cpp/ff_decoder.h>
+#include <ff_cpp/ff_frame.h>
+#include <ff_cpp/ff_include.h>
+#include <ff_cpp/ff_packet.h>
+#include <ff_cpp/ff_stream.h>
 
 namespace ff_cpp {
 

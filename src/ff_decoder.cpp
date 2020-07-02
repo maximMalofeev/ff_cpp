@@ -1,6 +1,8 @@
 #include <ff_cpp/ff_decoder.h>
 #include <ff_cpp/ff_exception.h>
 
+#include <ostream>
+
 namespace ff_cpp {
 
 static void avCodecDeleter(AVCodecContext* ctxt) {

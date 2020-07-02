@@ -1,7 +1,7 @@
 #pragma once
 #include <ff_cpp/ff_include.h>
 
-#include <array>
+#include <memory>
 
 namespace ff_cpp {
 

@@ -2,6 +2,8 @@
 #include <ff_cpp/ff_frame.h>
 #include <ff_cpp/ff_include.h>
 
+#include <memory>
+
 namespace ff_cpp {
 
 class Filter {
