@@ -22,7 +22,9 @@ else()
   conan_cmake_run(
     CONANFILE conanfile.py
     BASIC_SETUP CMAKE_TARGETS
-    BUILD missing)
+    BUILD missing
+    ENV CC="${CMAKE_C_COMPILER}"
+    ENV CXX="${CMAKE_CXX_COMPILER}")
   include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 endif()
 
