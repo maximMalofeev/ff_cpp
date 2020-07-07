@@ -1,0 +1,60 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  windows:
+    name: Windows build
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: install conan
+      run: |
+        pip install conan
+        conan --version
+    - name: install ninja
+      run: choco install ninja
+    - name: configure
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release -G Ninja
+    - name: build
+      run: |
+        cd build
+        cmake --build . --config Release
+    - name: test
+      run: |
+        cd build
+        ctest -C Release
+
+  linux:
+    runs-on: ubuntu-18.04
+    name: Linux build
+    steps:
+    - uses: actions/checkout@v2
+    - name: install conan
+      run: |
+        pip install conan
+        source ~/.profile
+        sudo ln -s ~/.local/bin/conan /usr/local/bin/conan
+        conan --version
+    - name: install ninja
+      run: sudo apt install ninja-build
+    - name: configure
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release -G Ninja
+    - name: build
+      run: |
+        cd build
+        cmake --build . --config Release
+    - name: test
+      run: |
+        cd build
+        ctest -C Release
