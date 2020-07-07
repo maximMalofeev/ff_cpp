@@ -10,6 +10,9 @@ jobs:
   windows:
     name: Windows build
     runs-on: windows-latest
+    defaults:
+      run:
+        shell: cmd
     steps:
     - uses: actions/checkout@v2
     - name: install conan
@@ -18,18 +21,13 @@ jobs:
         conan --version
     - name: install ninja
       run: choco install ninja
-    - name: configure
+    - name: configure, build and test
       run: |
+        call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
         mkdir build
         cd build
-        cmake .. -DCMAKE_BUILD_TYPE=Release -G Ninja
-    - name: build
-      run: |
-        cd build
-        cmake --build . --config Release
-    - name: test
-      run: |
-        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -G Ninja
+        cmake --build . --config Release --target all
         ctest -C Release
 
   linux:
@@ -45,16 +43,10 @@ jobs:
         conan --version
     - name: install ninja
       run: sudo apt install ninja-build
-    - name: configure
+    - name: configure, build and test
       run: |
         mkdir build
         cd build
-        cmake .. -DCMAKE_BUILD_TYPE=Release -G Ninja
-    - name: build
-      run: |
-        cd build
-        cmake --build . --config Release
-    - name: test
-      run: |
-        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/bin/gcc-7 -DCMAKE_CXX_COMPILER=/usr/bin/g++-7 -G Ninja
+        cmake --build . --config Release --target all
         ctest -C Release
