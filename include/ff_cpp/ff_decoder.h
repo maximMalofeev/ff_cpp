@@ -3,6 +3,8 @@
 #include <ff_cpp/ff_packet.h>
 #include <ff_cpp/ff_frame.h>
 
+#include <memory>
+
 namespace ff_cpp {
 
 class Decoder {

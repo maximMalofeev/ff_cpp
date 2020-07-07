@@ -1,5 +1,7 @@
 #include <ff_cpp/ff_stream.h>
 
+#include <ostream>
+
 namespace ff_cpp {
 
 struct Stream::Impl {

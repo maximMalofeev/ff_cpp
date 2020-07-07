@@ -5,6 +5,7 @@
 #include <chrono>
 #include <fstream>
 #include <iostream>
+#include <memory>
 
 constexpr int TIMEOUT = 5;
 constexpr int x_pos = 0;

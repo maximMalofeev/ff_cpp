@@ -46,7 +46,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(${PROJECT_NAME} PUBLIC CONAN_PKG::ffmpeg)
 
 if(WIN32)
-  add_compile_options(-MP$ENV{NUMBER_OF_PROCESSORS})
   set(FF_CPP_DEFINES -DFF_CPP)
   if(${BUILD_SHARED_LIBS})
     set(FF_CPP_DEFINES ${FF_CPP_DEFINES} -DFF_CPP_SHARED)
