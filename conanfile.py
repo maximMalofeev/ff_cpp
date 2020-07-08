@@ -16,6 +16,7 @@ class FFCPPConan(ConanFile):
 
     def source(self):
        self.run("git clone https://github.com/maximMalofeev/ff_cpp.git")
+       self.run("cd ff_cpp")
        self.run("git checkout pkg")
 
     def build(self):
