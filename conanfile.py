@@ -9,6 +9,7 @@ class FFCPPConan(ConanFile):
     url = "https://github.com/maximMalofeev/ff_cpp.git"
     scm = {
         "type": "git",
+        "subfolder": "ff_cpp",
         "url": url,
         "revision": "abf7c4bdee68def9ee7132d7ff7e5b7e488b6113"
     }
