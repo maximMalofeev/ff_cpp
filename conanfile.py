@@ -15,9 +15,7 @@ class FFCPPConan(ConanFile):
     requires = "ffmpeg/4.0@bincrafters/stable", "sdl2/2.0.9@bincrafters/stable", "catch2/2.12.2"
 
     def source(self):
-       self.run("git clone https://github.com/maximMalofeev/ff_cpp.git")
-       self.run("cd ff_cpp")
-       self.run("git checkout pkg")
+       self.run("git clone -b pkg https://github.com/maximMalofeev/ff_cpp.git")
 
     def build(self):
         cmake = CMake(self)
