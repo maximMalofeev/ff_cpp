@@ -1,5 +1,5 @@
-#define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do
-                           // this in one cpp file
+#define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do \
+                          // this in one cpp file
 #include <ff_cpp/ff_demuxer.h>
 #include <ff_cpp/ff_exception.h>
 #include <ff_cpp/ff_filter.h>
@@ -40,7 +40,14 @@ TEST_CASE("Prepare demuxer", "[demuxer]") {
   }
   SECTION("Timeout") {
     ff_cpp::Demuxer demuxer("rtsp://localhost:5555/Some/Stream/3");
-    REQUIRE_THROWS_AS(demuxer.prepare({}, 5), ff_cpp::TimeoutElapsed);
+    try {
+      demuxer.prepare({}, 5);
+      FAIL();
+    } catch (const ff_cpp::BadInput &) {
+      SUCCEED();
+    } catch (const ff_cpp::TimeoutElapsed &) {
+      SUCCEED();
+    }
   }
 }
 
@@ -80,7 +87,7 @@ TEST_CASE("Demuxer streams", "[demuxer]") {
     demuxer.prepare();
     REQUIRE(!demuxer.streams().empty());
     REQUIRE_NOTHROW(demuxer.bestVideoStream());
-    auto& bestVStream = demuxer.bestVideoStream();
+    auto &bestVStream = demuxer.bestVideoStream();
     std::cout << bestVStream << std::endl;
     REQUIRE((bestVStream.index() >= 0 &&
              bestVStream.index() < demuxer.streams().size()));
@@ -106,7 +113,7 @@ TEST_CASE("Demuxer decoders", "[demuxer]") {
     ff_cpp::Demuxer demuxer(url);
     demuxer.prepare();
     REQUIRE_NOTHROW(demuxer.createDecoder(demuxer.bestVideoStream().index()));
-    auto& decoder = demuxer.decoders().at(demuxer.bestVideoStream().index());
+    auto &decoder = demuxer.decoders().at(demuxer.bestVideoStream().index());
     std::cout << decoder << std::endl;
     REQUIRE(decoder.mediaType() == AVMEDIA_TYPE_VIDEO);
     REQUIRE(decoder.codec() == AV_CODEC_ID_H264);
@@ -132,14 +139,14 @@ TEST_CASE("Start/Stop demuxer", "[demuxer]") {
     demuxer.prepare();
     demuxer.createDecoder(demuxer.bestVideoStream().index());
     demuxer.start(
-        [&demuxer](const ff_cpp::Frame& frm) {
+        [&demuxer](const ff_cpp::Frame &frm) {
           REQUIRE(frm.width() == 1920);
           REQUIRE(frm.height() == 1080);
           REQUIRE(frm.format() ==
                   static_cast<AVPixelFormat>(AV_PIX_FMT_YUV420P));
           demuxer.stop();
         },
-        [&demuxer](const ff_cpp::Packet& pkt) {
+        [&demuxer](const ff_cpp::Packet &pkt) {
           if (pkt.streamIndex() == demuxer.bestVideoStream().index()) {
             return true;
           }
@@ -255,7 +262,7 @@ TEST_CASE("Filter tests", "[filter]") {
     REQUIRE(f);
     f.close();
 
-    ff_cpp::Frame imgFrm{reinterpret_cast<uint8_t*>(img.get()), width, height,
+    ff_cpp::Frame imgFrm{reinterpret_cast<uint8_t *>(img.get()), width, height,
                          format};
 
     ff_cpp::Filter filter(filterDescr, width, height, format, {format});
