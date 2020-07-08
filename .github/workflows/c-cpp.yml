@@ -1,0 +1,54 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  windows:
+    name: Windows build
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: cmd
+    steps:
+    - uses: actions/checkout@v2
+    - name: install conan
+      run: |
+        pip install conan
+        conan --version
+    - name: install ninja
+      run: choco install ninja
+    - name: configure, build and test
+      run: |
+        call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -G Ninja
+        cmake --build . --config Release --target all
+        ctest -C Release
+
+  linux:
+    runs-on: ubuntu-18.04
+    name: Linux build
+    steps:
+    - uses: actions/checkout@v2
+    - name: install conan
+      run: |
+        pip install conan
+        source ~/.profile
+        sudo ln -s ~/.local/bin/conan /usr/local/bin/conan
+        conan --version
+        conan profile new default --detect --force
+        conan profile update settings.compiler.libcxx=libstdc++11 default
+    - name: install ninja
+      run: sudo apt install ninja-build
+    - name: configure, build and test
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/bin/gcc-7 -DCMAKE_CXX_COMPILER=/usr/bin/g++-7 -G Ninja
+        cmake --build . --config Release --target all
+        ctest -C Release
