@@ -7,15 +7,17 @@ class FFCPPConan(ConanFile):
     license = ""
     author = "Maxim Malofeev maximmalofeev@bk.ru"
     url = "https://github.com/maximMalofeev/ff_cpp.git"
+    scm = {
+        "type": "git",
+        "url": url,
+        "revision": "abf7c4bdee68def9ee7132d7ff7e5b7e488b6113"
+    }
     description = "ff_cpp"
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False]}
     default_options = {"shared": False}
     generators = "cmake"
     requires = "ffmpeg/4.0@bincrafters/stable", "sdl2/2.0.9@bincrafters/stable", "catch2/2.12.2"
-
-    def source(self):
-       self.run("git clone -b pkg https://github.com/maximMalofeev/ff_cpp.git")
 
     def build(self):
         cmake = CMake(self)
