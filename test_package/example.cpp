@@ -2,4 +2,4 @@
 
 #include <iostream>
 
-int main() { ff_cpp::dumpConfiguration(); }
+int main() { ff_cpp::Info::dumpConfiguration(); }
