@@ -1,3 +1,5 @@
+![C/C++ CI](https://github.com/maximMalofeev/ff_cpp/workflows/C/C++%20CI/badge.svg?branch=master)
+
 # ff_cpp
 
 Simple wrapper around ffmpeg.  
