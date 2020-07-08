@@ -11,7 +11,7 @@ class FFCPPConan(ConanFile):
         "type": "git",
         "subfolder": "ff_cpp",
         "url": url,
-        "revision": "c710491eae0c38fba3db08a9d09b83ecdd0656e7"
+        "revision": "b0e252f88160357d4d1b97aa17526009d5219f28"
     }
     description = "ff_cpp"
     settings = "os", "compiler", "build_type", "arch"
