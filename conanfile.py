@@ -18,7 +18,7 @@ class FFCPPConan(ConanFile):
     options = {"shared": [True, False]}
     default_options = {"shared": False}
     generators = "cmake"
-    requires = "ffmpeg/4.0@bincrafters/stable", "sdl2/2.0.9@bincrafters/stable", "catch2/2.12.2"
+    requires = "ffmpeg/4.2.1@bincrafters/stable", "sdl2/2.0.9@bincrafters/stable", "catch2/2.12.2"
 
     def build(self):
         cmake = CMake(self)
