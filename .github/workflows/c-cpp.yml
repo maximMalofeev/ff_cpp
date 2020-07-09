@@ -33,6 +33,8 @@ jobs:
   linux:
     runs-on: ubuntu-18.04
     name: Linux build
+    env:
+      CONAN_SYSREQUIRES_MODE: enabled
     steps:
     - uses: actions/checkout@v2
     - name: install conan
